@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="CONTROLADORA/CONTROLADORA.csproj" Id="9ddb5903-7246-46b0-b56e-ec9baf53f948" />
+  <Project Path="ENTIDADES/ENTIDADES.csproj" Id="4438b114-60f8-47b2-8c58-60c4d03e4ff2" />
+  <Project Path="MODELO/MODELO.csproj" Id="2b321d29-45ea-4a1c-b4fa-84f6dca11292" />
+  <Project Path="PROYECTO_WEB.TESIS/PROYECTO_WEB.TESIS.csproj" />
+</Solution>

@@ -1,0 +1,167 @@
+﻿@{
+    ViewData["Title"] = "Historial de Compras";
+    Layout = "~/Views/Shared/_LayoutProveedor.cshtml";
+    var compras = ViewBag.Compras as List<ENTIDADES.Compra> ?? new List<ENTIDADES.Compra>();
+}
+
+<div class="panel-header">
+    <h3>HISTORIAL DE COMPRAS — @ViewBag.ProveedorNombre</h3>
+</div>
+<div class="panel-body-content">
+
+    <div style="background:#fff8dc;border:1px solid #e8c840;border-radius:5px;padding:10px 14px;margin-bottom:12px;">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div class="form-field" style="margin:0;">
+                <label>DESDE:</label>
+                <input type="date" id="hist-desde" style="width:145px;" />
+            </div>
+            <div class="form-field" style="margin:0;">
+                <label>HASTA:</label>
+                <input type="date" id="hist-hasta" style="width:145px;" />
+            </div>
+            <button class="btn-dorado" style="align-self:flex-end;padding:5px 14px;" onclick="filtrarHistorial()">FILTRAR</button>
+            <button class="btn-gris" style="align-self:flex-end;padding:5px 10px;" onclick="limpiarHistorial()">LIMPIAR</button>
+        </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-bottom:10px;">
+        <div class="prov-stat-card" style="min-width:unset;flex:none;padding:8px 16px;">
+            <div class="prov-stat-title">Total:</div>
+            <div style="font-size:16px;font-weight:700;" id="hist-total">$@compras.Sum(c => c.Total).ToString("N2")</div>
+        </div>
+        <div class="prov-stat-card" style="min-width:unset;flex:none;padding:8px 16px;">
+            <div class="prov-stat-title">Cantidad:</div>
+            <div style="font-size:16px;font-weight:700;" id="hist-cantidad">@compras.Count</div>
+        </div>
+        <div class="prov-stat-card" style="min-width:unset;flex:none;padding:8px 16px;">
+            <div class="prov-stat-title">Promedio:</div>
+            <div style="font-size:16px;font-weight:700;" id="hist-promedio">
+                $@(compras.Any() ? (compras.Sum(c => c.Total) / compras.Count).ToString("N2") : "0.00")
+            </div>
+        </div>
+    </div>
+
+    <div class="data-table-wrap">
+        <table class="data-table" id="tabla-historial">
+            <thead>
+                <tr><th>ID</th><th>Fecha</th><th>N° Factura</th><th>Forma de Pago</th><th>Total</th><th>Detalle</th></tr>
+            </thead>
+            <tbody>
+                @if (!compras.Any())
+                {
+                    <tr><td colspan="6" style="text-align:center;padding:20px;color:#aaa;">Sin compras en el historial.</td></tr>
+                }
+                @foreach (var c in compras.OrderByDescending(c => c.FechaCompra))
+                {
+                    var dj = System.Text.Json.JsonSerializer.Serialize(
+                        c.Detalles.Select(d => new { nombre = d.ProductoNombre, cantidad = d.Cantidad, precio = d.PrecioUnitario.ToString("N2"), subtotal = d.Subtotal.ToString("N2") })
+                    ).Replace("\"", "&quot;");
+                    <tr data-fecha="@c.FechaCompra.ToString("yyyy-MM-dd")"
+                        data-id="@c.Id"
+                        data-total="@c.Total.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)"
+                        data-detalles="@Html.Raw(dj)"
+                        data-fechadisp="@c.FechaCompra.ToString("dd/MM/yyyy HH:mm")"
+                        data-factura="@c.NumeroFactura"
+                        data-formapago="@c.FormaPago">
+                        <td>@c.Id</td>
+                        <td>@c.FechaCompra.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@c.NumeroFactura</td>
+                        <td>@c.FormaPago</td>
+                        <td>$@c.Total.ToString("N2")</td>
+                        <td>
+                            <button class="btn-azul" style="padding:3px 10px;font-size:10px;"
+                                    onclick="verDetalleHistorial(this.closest('tr'))">
+                                VER DETALLE
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="btn-dorado" onclick="exportarPDF()">EXPORTAR PDF</button>
+    </div>
+</div>
+
+<div id="modal-hist-detalle" class="modal-overlay">
+    <div class="modal-box" style="width:500px;">
+        <div class="modal-title">DETALLE DE COMPRA</div>
+        <div id="modal-hist-body" style="font-size:12px;line-height:1.7;white-space:pre-wrap;font-family:'Courier New',monospace;background:#fff;padding:10px;border-radius:4px;max-height:400px;overflow-y:auto;"></div>
+        <div class="modal-btns">
+            <button class="btn-gris" onclick="cerrarModalHist()">CERRAR</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var hoy = new Date(), hace30 = new Date();
+            hace30.setDate(hoy.getDate() - 30);
+            function fmt(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+            document.getElementById('hist-desde').value = fmt(hace30);
+            document.getElementById('hist-hasta').value = fmt(hoy);
+        });
+
+        function filtrarHistorial() {
+            var desde = document.getElementById('hist-desde').value;
+            var hasta = document.getElementById('hist-hasta').value;
+            var total = 0, count = 0;
+            document.querySelectorAll('#tabla-historial tbody tr').forEach(function(r) {
+                if (!r.dataset.fecha) return;
+                var ok = (!desde || r.dataset.fecha >= desde) && (!hasta || r.dataset.fecha <= hasta);
+                r.style.display = ok ? '' : 'none';
+                if (ok && r.dataset.total) { total += parseFloat(r.dataset.total) || 0; count++; }
+            });
+            document.getElementById('hist-total').textContent = '$' + total.toFixed(2);
+            document.getElementById('hist-cantidad').textContent = count;
+            document.getElementById('hist-promedio').textContent = count > 0 ? '$' + (total/count).toFixed(2) : '$0.00';
+        }
+
+        function limpiarHistorial() {
+            document.getElementById('hist-desde').value = '';
+            document.getElementById('hist-hasta').value = '';
+            var total = 0, count = 0;
+            document.querySelectorAll('#tabla-historial tbody tr').forEach(function(r) {
+                r.style.display = '';
+                if (r.dataset.total) { total += parseFloat(r.dataset.total) || 0; count++; }
+            });
+            document.getElementById('hist-total').textContent = '$' + total.toFixed(2);
+            document.getElementById('hist-cantidad').textContent = count;
+            document.getElementById('hist-promedio').textContent = count > 0 ? '$' + (total/count).toFixed(2) : '$0.00';
+        }
+
+        function verDetalleHistorial(row) {
+            var detalles = JSON.parse(row.dataset.detalles.replace(/&quot;/g, '"'));
+            var txt = 'COMPRA #' + row.dataset.id + '\n';
+            txt += 'Fecha:          ' + row.dataset.fechadisp + '\n';
+            txt += 'N° Factura:     ' + row.dataset.factura + '\n';
+            txt += 'Forma de Pago:  ' + row.dataset.formapago + '\n\n';
+            txt += 'PRODUCTOS:\n' + '─'.repeat(44) + '\n';
+            detalles.forEach(function(d) {
+                txt += '• ' + d.nombre + '\n';
+                txt += '  Cant: ' + d.cantidad + '   P.Unit: $' + d.precio + '   Subtotal: $' + d.subtotal + '\n\n';
+            });
+            txt += '─'.repeat(44) + '\n';
+            txt += 'TOTAL: $' + parseFloat(row.dataset.total).toFixed(2);
+            document.getElementById('modal-hist-body').textContent = txt;
+            document.getElementById('modal-hist-detalle').classList.add('visible');
+        }
+        function cerrarModalHist() {
+            document.getElementById('modal-hist-detalle').classList.remove('visible');
+        }
+        document.getElementById('modal-hist-detalle').addEventListener('click', function(e) {
+            if (e.target === this) cerrarModalHist();
+        });
+
+        function exportarPDF() {
+            var desde = document.getElementById('hist-desde').value;
+            var hasta = document.getElementById('hist-hasta').value;
+            var url = '/Reporte/GenerarReporteCompras';
+            if (desde || hasta) url += '?desde=' + (desde||'') + '&hasta=' + (hasta||'');
+            window.open(url, '_blank');
+        }
+    </script>
+}

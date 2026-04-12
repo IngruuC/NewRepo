@@ -1,0 +1,32 @@
+﻿@model List<ENTIDADES.Compra>
+@{
+    ViewData["Title"] = "Compras";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>📦 Compras</h2>
+    <a asp-action="Crear" class="btn btn-warning">+ Nueva Compra</a>
+</div>
+<table class="table table-striped shadow-sm">
+    <thead class="table-warning">
+        <tr><th>ID</th><th>Fecha</th><th>Proveedor</th><th>N° Factura</th><th>Forma de Pago</th><th>Total</th><th>Acciones</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var c in Model)
+        {
+            <tr>
+                <td>@c.Id</td>
+                <td>@c.FechaCompra.ToString("dd/MM/yyyy HH:mm")</td>
+                <td>@c.Proveedor?.RazonSocial</td>
+                <td>@c.NumeroFactura</td>
+                <td>@c.FormaPago</td>
+                <td>$@c.Total.ToString("N2")</td>
+                <td>
+                    <form asp-action="Eliminar" method="post" style="display:inline" onsubmit="return confirm('¿Eliminar compra?')">
+                        <input type="hidden" name="id" value="@c.Id" />
+                        <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

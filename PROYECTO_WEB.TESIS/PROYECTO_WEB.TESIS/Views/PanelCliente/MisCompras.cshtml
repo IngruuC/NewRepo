@@ -1,0 +1,160 @@
+﻿@{
+    ViewData["Title"] = "Mis Compras";
+    Layout = "~/Views/Shared/_LayoutCliente.cshtml";
+    var ventas = ViewBag.Ventas as List<ENTIDADES.Venta> ?? new List<ENTIDADES.Venta>();
+}
+
+<div class="panel-header">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <rect x="2" y="3" width="14" height="12" rx="1.5" stroke="#3a2500" stroke-width="1.3" fill="none" />
+        <line x1="2" y1="7" x2="16" y2="7" stroke="#3a2500" stroke-width="1.2" />
+        <line x1="6" y1="3" x2="6" y2="1" stroke="#3a2500" stroke-width="1.2" />
+        <line x1="12" y1="3" x2="12" y2="1" stroke="#3a2500" stroke-width="1.2" />
+    </svg>
+    <h3>MIS COMPRAS</h3>
+</div>
+<div class="panel-body-content">
+
+    <div style="background:#fff8dc;border:1px solid #e8c840;border-radius:5px;padding:10px 14px;margin-bottom:12px;">
+        <div style="font-size:10px;font-weight:700;color:#7a5500;margin-bottom:6px;">FILTRAR COMPRAS</div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div class="form-field" style="margin:0;">
+                <label>DESDE:</label>
+                <input type="date" id="comp-desde" style="width:145px;" />
+            </div>
+            <div class="form-field" style="margin:0;">
+                <label>HASTA:</label>
+                <input type="date" id="comp-hasta" style="width:145px;" />
+            </div>
+            <button class="btn-dorado" style="align-self:flex-end;padding:5px 14px;" onclick="filtrarComprasCliente()">FILTRAR</button>
+            <button class="btn-gris" style="align-self:flex-end;padding:5px 10px;" onclick="limpiarFiltroCompras()">LIMPIAR</button>
+        </div>
+    </div>
+
+    <div class="data-table-wrap">
+        <table class="data-table" id="tabla-mis-compras">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Fecha</th>
+                    <th>Forma de Pago</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Detalle</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!ventas.Any())
+                {
+                    <tr><td colspan="6" style="text-align:center;padding:20px;color:#aaa;">No tienes compras registradas.</td></tr>
+                }
+                @foreach (var v in ventas)
+                {
+                    var detalleJson = System.Text.Json.JsonSerializer.Serialize(
+                        v.Detalles.Select(d => new { nombre = d.ProductoNombre, cantidad = d.Cantidad, precio = d.PrecioUnitario.ToString("N2"), subtotal = d.Subtotal.ToString("N2") })
+                    ).Replace("\"", "&quot;");
+                    <tr data-fecha="@v.FechaVenta.ToString("yyyy-MM-dd")"
+                        data-detalles="@Html.Raw(detalleJson)"
+                        data-id="@v.Id" data-total="@v.Total.ToString("N2")"
+                        data-fecha-display="@v.FechaVenta.ToString("dd/MM/yyyy HH:mm")"
+                        data-formapago="@v.FormaPago">
+                        <td>@v.Id</td>
+                        <td>@v.FechaVenta.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@v.FormaPago</td>
+                        <td>@v.Detalles.Sum(d => d.Cantidad)</td>
+                        <td>$@v.Total.ToString("N2")</td>
+                        <td>
+                            <button class="btn-azul" style="padding:3px 10px;font-size:10px;"
+                                    onclick="verDetalleCompra(this.closest('tr'))">
+                                VER
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+        <div class="carrito-total">TOTAL VISIBLE: $<span id="comp-total-lbl">@ventas.Sum(v => v.Total).ToString("N2")</span></div>
+    </div>
+</div>
+
+<div id="modal-detalle-comp" class="modal-overlay">
+    <div class="modal-box" style="width:480px;">
+        <div class="modal-title">DETALLE DE COMPRA</div>
+        <div id="modal-detalle-body" style="font-size:12px;line-height:1.7;white-space:pre-wrap;font-family:'Courier New',monospace;background:#fff;padding:10px;border-radius:4px;max-height:400px;overflow-y:auto;"></div>
+        <div class="modal-btns">
+            <button class="btn-gris" onclick="cerrarModalDetalle()">CERRAR</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            actualizarBadgeCarrito();
+            var hoy = new Date(), hace30 = new Date();
+            hace30.setDate(hoy.getDate() - 30);
+            function fmt(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+            document.getElementById('comp-desde').value = fmt(hace30);
+            document.getElementById('comp-hasta').value = fmt(hoy);
+        });
+
+        function actualizarBadgeCarrito() {
+            var carrito = JSON.parse(sessionStorage.getItem('carrito') || '[]');
+            var total = carrito.reduce(function(s,i){ return s + i.cantidad; }, 0);
+            var badge = document.querySelector('.carrito-badge');
+            if (total > 0) {
+                if (!badge) { badge = document.createElement('span'); badge.className = 'carrito-badge'; document.querySelector('.carrito-icon-wrap').appendChild(badge); }
+                badge.textContent = total; badge.style.display = 'flex';
+            }
+        }
+
+        function filtrarComprasCliente() {
+            var desde = document.getElementById('comp-desde').value;
+            var hasta = document.getElementById('comp-hasta').value;
+            var total = 0;
+            document.querySelectorAll('#tabla-mis-compras tbody tr').forEach(function(r) {
+                if (!r.dataset.fecha) return;
+                var ok = (!desde || r.dataset.fecha >= desde) && (!hasta || r.dataset.fecha <= hasta);
+                r.style.display = ok ? '' : 'none';
+                if (ok && r.dataset.total) total += parseFloat(r.dataset.total.replace(',','')) || 0;
+            });
+            document.getElementById('comp-total-lbl').textContent = total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        function limpiarFiltroCompras() {
+            document.getElementById('comp-desde').value = '';
+            document.getElementById('comp-hasta').value = '';
+            var total = 0;
+            document.querySelectorAll('#tabla-mis-compras tbody tr').forEach(function(r) {
+                r.style.display = '';
+                if (r.dataset.total) total += parseFloat(r.dataset.total.replace(',','')) || 0;
+            });
+            document.getElementById('comp-total-lbl').textContent = total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        function verDetalleCompra(row) {
+            var detalles = JSON.parse(row.dataset.detalles.replace(/&quot;/g, '"'));
+            var txt = 'COMPRA #' + row.dataset.id + '\n';
+            txt += 'Fecha:         ' + row.dataset.fechaDisplay + '\n';
+            txt += 'Forma de Pago: ' + row.dataset.formapago + '\n\n';
+            txt += 'PRODUCTOS:\n' + '─'.repeat(40) + '\n';
+            detalles.forEach(function(d) {
+                txt += '• ' + d.nombre + '\n';
+                txt += '  Cantidad: ' + d.cantidad + '   Precio: $' + d.precio + '   Subtotal: $' + d.subtotal + '\n\n';
+            });
+            txt += '─'.repeat(40) + '\n';
+            txt += 'TOTAL: $' + row.dataset.total;
+            document.getElementById('modal-detalle-body').textContent = txt;
+            document.getElementById('modal-detalle-comp').classList.add('visible');
+        }
+        function cerrarModalDetalle() {
+            document.getElementById('modal-detalle-comp').classList.remove('visible');
+        }
+        document.getElementById('modal-detalle-comp').addEventListener('click', function(e) {
+            if (e.target === this) cerrarModalDetalle();
+        });
+    </script>
+}

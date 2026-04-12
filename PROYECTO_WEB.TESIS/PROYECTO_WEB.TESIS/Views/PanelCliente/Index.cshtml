@@ -1,0 +1,651 @@
+﻿@{
+    ViewData["Title"] = "Panel Cliente";
+    Layout = "~/Views/Shared/_LayoutCliente.cshtml";
+    var cliente = ViewBag.Cliente as ENTIDADES.Cliente;
+    var productos = ViewBag.Productos as List<ENTIDADES.Producto> ?? new List<ENTIDADES.Producto>();
+    var misVentas = ViewBag.MisVentas as List<ENTIDADES.Venta> ?? new List<ENTIDADES.Venta>();
+    var promosVigentes = ViewBag.PromocionesVigentes as List<ENTIDADES.Promocion> ?? new List<ENTIDADES.Promocion>();
+    var favoritosIds = ViewBag.FavoritosIds as List<int> ?? new List<int>();
+}
+
+@* ══════════════════════════════════════════════
+   PANEL: INICIO
+   ══════════════════════════════════════════════ *@
+<div class="panel active" id="panel-inicio">
+    <div class="panel-header">
+        <h3>PRODUCTOS DISPONIBLES</h3>
+    </div>
+    <div class="panel-full" style="padding:14px;">
+        <div class="search-bar" style="margin-bottom:10px;">
+            <label>BUSCAR:</label>
+            <input type="text" id="search-inicio" oninput="filtrarProductosInicio(this.value)" placeholder="Nombre del producto..." />
+            <button class="btn-search" onclick="filtrarProductosInicio(document.getElementById('search-inicio').value)">BUSCAR</button>
+            <button class="btn-clear" onclick="document.getElementById('search-inicio').value='';filtrarProductosInicio('')">LIMPIAR</button>
+        </div>
+        <div class="productos-grid" id="grid-productos">
+            @foreach (var p in productos)
+            {
+                var promo = promosVigentes.FirstOrDefault(pr => pr.ProductoId == p.Id);
+                var precioFinal = promo != null ? promo.AplicarDescuento(p.Precio) : p.Precio;
+                var esFavorito = favoritosIds.Contains(p.Id);
+                <div class="producto-card" data-nom="@p.Nombre.ToLower()">
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:4px;">
+                        <div class="producto-card-nombre">@p.Nombre</div>
+                        <button type="button"
+                                class="btn-corazon @(esFavorito ? "corazon-activo" : "")"
+                                id="corazon-@p.Id"
+                                onclick="toggleFavorito(@p.Id, '@Html.Raw(p.Nombre.Replace("'", "\\'"))', @precioFinal.ToString(System.Globalization.CultureInfo.InvariantCulture), @p.Stock)">
+                            @(esFavorito ? "♥" : "♡")
+                        </button>
+                    </div>
+
+                    @if (promo != null)
+                    {
+                        <div style="background:#e74c3c;color:#fff;font-size:10px;font-weight:700;
+                            border-radius:4px;padding:2px 8px;display:inline-block;margin-bottom:4px;">
+                            🏷️ @(promo.TipoDescuento == "Porcentaje"
+                                                            ? $"{promo.ValorDescuento:0.##}% OFF"
+                                                            : $"${promo.ValorDescuento:N2} OFF")
+                            @if (!string.IsNullOrEmpty(promo.Descripcion))
+                            {
+                                <span> — @promo.Descripcion</span>
+                            }
+                        </div>
+                    }
+
+                    @if (p.EsPerecedero && p.FechaVencimiento.HasValue)
+                    {
+                        <div class="producto-card-vence">⚠️ Vence: @p.FechaVencimiento.Value.ToString("dd/MM/yyyy")</div>
+                    }
+
+                    @if (promo != null)
+                    {
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <div class="producto-card-precio" style="color:#e74c3c;">$@precioFinal.ToString("N2")</div>
+                            <div style="font-size:11px;color:#aaa;text-decoration:line-through;">$@p.Precio.ToString("N2")</div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="producto-card-precio">$@p.Precio.ToString("N2")</div>
+                    }
+
+                    <div class="producto-card-stock @(p.Stock <= 5 ? "stock-bajo" : "")">
+                        Stock: @p.Stock ud.
+                    </div>
+                    <div class="producto-card-acciones">
+                        <button class="btn-agregar-carrito"
+                                onclick="carritoAgregarProducto(@p.Id, '@Html.Raw(p.Nombre.Replace("'", "\\'"))', @precioFinal.ToString(System.Globalization.CultureInfo.InvariantCulture), @p.Stock)">
+                            🛒 Agregar
+                        </button>
+                        <button class="btn-ver-detalles"
+                                onclick="verDetallesProducto(@p.Id, '@Html.Raw(p.Nombre.Replace("'", "\\'"))', @precioFinal.ToString(System.Globalization.CultureInfo.InvariantCulture), @p.Stock, '@(p.EsPerecedero ? "Sí" : "No")', '@(p.FechaVencimiento?.ToString("dd/MM/yyyy") ?? "-")', @p.Precio.ToString(System.Globalization.CultureInfo.InvariantCulture), @(promo != null ? "true" : "false"))">
+                            Ver Detalles
+                        </button>
+                    </div>
+                </div>
+            }
+            @if (!productos.Any())
+            {
+                <div style="color:#7a5500;font-size:13px;padding:20px;grid-column:1/-1;">No hay productos disponibles.</div>
+            }
+        </div>
+    </div>
+</div>
+
+@* ══════════════════════════════════════════════
+   PANEL: MI PERFIL
+   ══════════════════════════════════════════════ *@
+<div class="panel" id="panel-perfil">
+    <div class="panel-header"><h3>MI PERFIL</h3></div>
+    <div class="panel-full" style="padding:14px;">
+        <div class="perfil-box">
+            <div class="perfil-section-title">Datos Personales</div>
+            <div class="perfil-field"><label>Nombre:</label><input type="text" id="pf-nombre" value="@cliente?.Nombre" /></div>
+            <div class="perfil-field"><label>Apellido:</label><input type="text" id="pf-apellido" value="@cliente?.Apellido" /></div>
+            <div class="perfil-field"><label>Documento:</label><input type="text" id="pf-doc" value="@cliente?.Documento" readonly style="background:#f5e888;" /></div>
+            <div class="perfil-field"><label>Dirección:</label><input type="text" id="pf-dir" value="@cliente?.Direccion" /></div>
+            <div class="perfil-field"><label>Email:</label><input type="text" id="pf-email" value="@cliente?.Usuario?.Email" readonly style="background:#f5e888;" /></div>
+
+            <form asp-controller="PanelCliente" asp-action="Perfil" method="post" id="form-perfil">
+                <input type="hidden" name="Id" value="@cliente?.Id" />
+                <input type="hidden" name="Documento" value="@cliente?.Documento" />
+                <input type="hidden" name="UsuarioId" value="@cliente?.UsuarioId" />
+                <input type="hidden" name="Nombre" id="h-pf-nombre" />
+                <input type="hidden" name="Apellido" id="h-pf-apellido" />
+                <input type="hidden" name="Direccion" id="h-pf-dir" />
+                <input type="hidden" name="__panel" value="perfil" />
+            </form>
+
+            <div class="perfil-btns">
+                <button class="btn-pf-cambiar" onclick="abrirModalCambioContrasena()">Cambiar Contraseña</button>
+                <button class="btn-pf-guardar" onclick="guardarPerfil()">Guardar Cambios</button>
+                <button class="btn-pf-cancelar" onclick="cancelarPerfil('@cliente?.Nombre','@cliente?.Apellido','@Html.Raw(cliente?.Direccion?.Replace("'", "\\'") ?? "")')">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ══════════════════════════════════════════════
+   PANEL: COMPRAS
+   ══════════════════════════════════════════════ *@
+<div class="panel" id="panel-compras">
+    <div class="panel-header"><h3>MIS COMPRAS</h3></div>
+    <div class="panel-body">
+        <div class="panel-form-col">
+            <div class="form-box" style="display:flex;flex-direction:column;gap:6px;">
+                <div class="form-section-title">ACCIONES</div>
+                <button class="btn-form-save" style="background:#2980b9;border-color:#1a5276;color:#fff"
+                        id="btn-ver-det-compra" onclick="compraVerDetalle()" disabled>
+                    VER DETALLE
+                </button>
+            </div>
+        </div>
+        <div class="panel-table-col">
+            <div class="search-bar" style="flex-wrap:wrap;gap:5px;">
+                <div style="display:flex;align-items:center;gap:5px;">
+                    <label class="vt-lbl">DESDE</label>
+                    <input type="date" id="comp-desde" class="vt-date" />
+                    <label class="vt-lbl">HASTA</label>
+                    <input type="date" id="comp-hasta" class="vt-date" />
+                    <button class="btn-search" onclick="comprasFiltrar()">FILTRAR</button>
+                    <button class="btn-clear" onclick="comprasLimpiar()">LIMPIAR</button>
+                </div>
+            </div>
+            <div class="data-table-wrap" style="margin-top:6px;">
+                <table class="data-table" id="tabla-mis-compras">
+                    <thead><tr><th>ID</th><th>Fecha</th><th>Forma de Pago</th><th>Total</th></tr></thead>
+                    <tbody>
+                        @foreach (var v in misVentas)
+                        {
+                            <tr onclick="compraSeleccionar(this)"
+                                data-id="@v.Id"
+                                data-fecha="@v.FechaVenta.ToString("dd/MM/yyyy HH:mm")"
+                                data-formapago="@v.FormaPago"
+                                data-total="@v.Total.ToString("N2")"
+                                data-detalles="@Html.Raw(System.Text.Json.JsonSerializer.Serialize(v.Detalles.Select(d => new { nombre = d.ProductoNombre, cantidad = d.Cantidad, precio = d.PrecioUnitario.ToString("N2"), subtotal = d.Subtotal.ToString("N2") })).Replace("\"", "&quot;"))">
+                                <td>@v.Id</td>
+                                <td>@v.FechaVenta.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@v.FormaPago</td>
+                                <td>$@v.Total.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ══════════════════════════════════════════════
+   PANEL: FAVORITOS
+   ══════════════════════════════════════════════ *@
+<div class="panel" id="panel-favoritos">
+    <div class="panel-header"><h3>MIS FAVORITOS</h3></div>
+    <div class="panel-full" style="padding:14px;">
+        <div class="data-table-wrap">
+            <table class="data-table" id="tabla-favoritos">
+                <thead><tr><th>ID</th><th>Nombre</th><th>Precio</th><th>Stock</th><th>Acciones</th></tr></thead>
+                <tbody id="fav-tbody">
+                    <tr id="fav-empty"><td colspan="5" style="text-align:center;color:#aaa;padding:14px;">No tenés favoritos agregados.</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:10px;align-items:center;">
+            <span id="fav-total-lbl" style="font-size:11px;font-weight:700;color:#7a5500;">Total de favoritos: 0</span>
+            <button class="btn-agregar-fav" onclick="abrirModalAgregarFavorito()">Agregar Favorito</button>
+        </div>
+    </div>
+</div>
+
+@* ══════════════════════════════════════════════
+   MODALES
+   ══════════════════════════════════════════════ *@
+
+@* Carrito *@
+<div id="modal-carrito" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fffbe6;border:2px solid #b8860b;border-radius:8px;width:700px;max-width:96vw;max-height:90vh;display:flex;flex-direction:column;">
+        <div style="background:#d4a017;padding:8px 14px;border-radius:6px 6px 0 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+            <span style="font-size:13px;font-weight:700;color:#3a2500;">🛒 CARRITO DE COMPRAS</span>
+            <button onclick="cerrarCarrito()" style="background:#8B6508;border:none;color:#f5d060;border-radius:50%;width:22px;height:22px;cursor:pointer;font-weight:700;">✕</button>
+        </div>
+        <div style="overflow-y:auto;flex:1;padding:10px;">
+            <table class="data-table" style="min-width:520px;">
+                <thead><tr><th>Producto</th><th>Precio</th><th>Cantidad</th><th>Subtotal</th><th>Eliminar</th></tr></thead>
+                <tbody id="carrito-tbody">
+                    <tr id="carrito-empty"><td colspan="5" style="text-align:center;color:#aaa;padding:12px;">El carrito está vacío</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div style="padding:10px 14px;border-top:1px solid #e8c840;flex-shrink:0;">
+            <div style="font-size:14px;font-weight:700;color:#5a3e00;margin-bottom:8px;">Total: $<span id="carrito-total">0.00</span></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn-pf-cancelar" onclick="vaciarCarrito()">Vaciar Carrito</button>
+                <button class="btn-pf-cancelar" onclick="cerrarCarrito()">Seguir Comprando</button>
+                <button class="btn-pf-guardar" id="btn-finalizar-compra" onclick="abrirModalFormaPago()" disabled>Finalizar Compra</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Forma de pago *@
+<div id="modal-forma-pago" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:3000;align-items:center;justify-content:center;">
+    <div style="background:#fffbe6;border:2px solid #b8860b;border-radius:8px;width:360px;max-width:95vw;">
+        <div style="background:#d4a017;padding:8px 14px;border-radius:6px 6px 0 0;">
+            <span style="font-size:13px;font-weight:700;color:#3a2500;">Seleccionar Forma de Pago</span>
+        </div>
+        <div style="padding:18px;">
+            <div style="font-size:12px;font-weight:700;color:#5a3e00;margin-bottom:10px;">Seleccione forma de pago:</div>
+            <select id="sel-forma-pago" class="seg-fselect" style="width:100%;margin-bottom:16px;">
+                <option value="Efectivo">Efectivo (15% desc.)</option>
+                <option value="Tarjeta de Crédito">Tarjeta de Crédito (10% rec.)</option>
+                <option value="Tarjeta de Débito">Tarjeta de Débito</option>
+            </select>
+            <form asp-controller="PanelCliente" asp-action="RealizarCompra" method="post" id="form-venta-cliente">
+                <input type="hidden" name="ClienteId" id="h-venta-cliente-id" value="@cliente?.Id" />
+                <input type="hidden" name="FormaPago" id="h-venta-forma-pago" />
+                <input type="hidden" name="__panel" value="compras" />
+                <div id="h-venta-detalles"></div>
+            </form>
+            <div style="display:flex;gap:8px;justify-content:flex-end;">
+                <button class="btn-pf-cancelar" onclick="cerrarModalFormaPago()">Cancelar</button>
+                <button class="btn-pf-guardar" onclick="finalizarCompra()">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Detalles producto *@
+<div id="modal-producto" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fffbe6;border:2px solid #b8860b;border-radius:8px;width:400px;max-width:95vw;">
+        <div style="background:#d4a017;padding:8px 14px;border-radius:6px 6px 0 0;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:13px;font-weight:700;color:#3a2500;">📦 DETALLES DEL PRODUCTO</span>
+            <button onclick="cerrarModalProducto()" style="background:#8B6508;border:none;color:#f5d060;border-radius:50%;width:22px;height:22px;cursor:pointer;font-weight:700;">✕</button>
+        </div>
+        <div id="modal-producto-body" style="padding:16px;font-size:12px;color:#2a1800;line-height:1.9;background:#fff;"></div>
+        <div style="padding:8px 14px;text-align:right;border-top:1px solid #e8c840;">
+            <button class="btn-pf-cancelar" onclick="cerrarModalProducto()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+@* Detalle compra *@
+<div id="modal-det-compra" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fffbe6;border:2px solid #b8860b;border-radius:8px;width:500px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;">
+        <div style="background:#d4a017;padding:8px 14px;border-radius:6px 6px 0 0;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:13px;font-weight:700;color:#3a2500;">Detalle de Compra</span>
+            <button onclick="cerrarModalDetCompra()" style="background:#8B6508;border:none;color:#f5d060;border-radius:50%;width:22px;height:22px;cursor:pointer;font-weight:700;">✕</button>
+        </div>
+        <div id="modal-det-compra-body" style="padding:14px;overflow-y:auto;flex:1;font-size:12px;color:#2a1800;white-space:pre-wrap;font-family:'Courier New',monospace;line-height:1.6;background:#fff;"></div>
+        <div style="padding:8px 14px;text-align:right;border-top:1px solid #e8c840;">
+            <button class="btn-pf-cancelar" onclick="cerrarModalDetCompra()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+@* Agregar favorito *@
+<div id="modal-agregar-fav" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fffbe6;border:2px solid #b8860b;border-radius:8px;width:520px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;">
+        <div style="background:#d4a017;padding:8px 14px;border-radius:6px 6px 0 0;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:13px;font-weight:700;color:#3a2500;">Agregar Favorito</span>
+            <button onclick="cerrarModalAgregarFav()" style="background:#8B6508;border:none;color:#f5d060;border-radius:50%;width:22px;height:22px;cursor:pointer;font-weight:700;">✕</button>
+        </div>
+        <div style="padding:10px;overflow-y:auto;flex:1;">
+            <div class="search-bar" style="margin-bottom:8px;">
+                <label>BUSCAR:</label>
+                <input type="text" id="fav-buscar-input" oninput="favFiltrarBusqueda(this.value)" />
+            </div>
+            <div class="data-table-wrap">
+                <table class="data-table" id="tabla-buscar-prod">
+                    <thead><tr><th>ID</th><th>Nombre</th><th>Precio</th><th>Stock</th></tr></thead>
+                    <tbody id="buscar-prod-tbody">
+                        @foreach (var p in productos)
+                        {
+                            var promo = promosVigentes.FirstOrDefault(pr => pr.ProductoId == p.Id);
+                            var precioFinal = promo != null ? promo.AplicarDescuento(p.Precio) : p.Precio;
+                            <tr onclick="favSeleccionarProducto(this, @p.Id, '@Html.Raw(p.Nombre.Replace("'", "\\'"))', @precioFinal.ToString(System.Globalization.CultureInfo.InvariantCulture), @p.Stock)"
+                                data-nom="@p.Nombre.ToLower()">
+                                <td>@p.Id</td>
+                                <td>@p.Nombre @(promo != null ? "🏷️" : "")</td>
+                                <td>$@precioFinal.ToString("N2")</td>
+                                <td>@p.Stock</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #e8c840;display:flex;gap:8px;justify-content:flex-end;">
+            <button class="btn-pf-cancelar" onclick="cerrarModalAgregarFav()">Cancelar</button>
+            <button class="btn-pf-guardar" onclick="favAgregarSeleccionado()">Agregar</button>
+        </div>
+    </div>
+</div>
+
+@* Cambio contraseña *@
+<div id="modal-cambio-pass" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fffbe6;border:2px solid #b8860b;border-radius:8px;width:420px;max-width:95vw;">
+        <div style="background:#d4a017;padding:8px 14px;border-radius:6px 6px 0 0;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:13px;font-weight:700;color:#3a2500;">Cambiar Contraseña</span>
+            <button onclick="cerrarModalCambioPass()" style="background:#8B6508;border:none;color:#f5d060;border-radius:50%;width:22px;height:22px;cursor:pointer;font-weight:700;">✕</button>
+        </div>
+        <div style="padding:14px;">
+            <div class="perfil-field"><label>Contraseña Actual:</label><input type="password" id="pass-actual" /></div>
+            <div class="perfil-field"><label>Nueva Contraseña:</label><input type="password" id="pass-nueva" /></div>
+            <div class="perfil-field"><label>Confirmar Nueva Contraseña:</label><input type="password" id="pass-confirmar" /></div>
+            <form asp-controller="PanelCliente" asp-action="CambiarContrasena" method="post" id="form-cambio-pass">
+                <input type="hidden" name="contrasenaActual" id="h-pass-actual" />
+                <input type="hidden" name="nuevaContrasena" id="h-pass-nueva" />
+            </form>
+            <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
+                <button class="btn-pf-cancelar" onclick="cerrarModalCambioPass()">Cancelar</button>
+                <button class="btn-pf-guardar" onclick="guardarCambioPass()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var carritoItems = [];
+        var compraSeleccionadaFila = null;
+        var favoritosItems = [];
+        var favProdSeleccionado = null;
+
+        // ── BÚSQUEDA INICIO ──
+        function filtrarProductosInicio(val) {
+            var q = val.toLowerCase();
+            document.querySelectorAll('#grid-productos .producto-card').forEach(function(card) {
+                card.style.display = (!q || (card.dataset.nom || '').includes(q)) ? '' : 'none';
+            });
+        }
+
+        // ── CARRITO ──
+        function carritoAgregarProducto(id, nombre, precio, stock) {
+            var existing = carritoItems.find(i => i.id === id);
+            if (existing) {
+                if (existing.cantidad >= stock) { alert('Stock insuficiente. Solo hay ' + stock + ' unidades.'); return; }
+                existing.cantidad++;
+            } else {
+                if (stock <= 0) { alert('Sin stock disponible.'); return; }
+                carritoItems.push({ id, nombre, precio, cantidad: 1, stock });
+            }
+            carritoActualizarBadge();
+            alert('✅ ' + nombre + ' agregado al carrito.');
+        }
+        function carritoActualizarBadge() {
+            var total = carritoItems.reduce(function(s, i) { return s + i.cantidad; }, 0);
+            var badge = document.getElementById('carrito-badge');
+            if (badge) { badge.textContent = total; badge.style.display = total > 0 ? 'flex' : 'none'; }
+        }
+        function abrirCarrito() { carritoRenderTabla(); document.getElementById('modal-carrito').style.display = 'flex'; }
+        function cerrarCarrito() { document.getElementById('modal-carrito').style.display = 'none'; }
+        function carritoRenderTabla() {
+            var tbody = document.getElementById('carrito-tbody');
+            if (!carritoItems.length) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#aaa;padding:12px;">El carrito está vacío</td></tr>';
+                document.getElementById('carrito-total').textContent = '0.00';
+                document.getElementById('btn-finalizar-compra').disabled = true;
+                return;
+            }
+            var total = 0; tbody.innerHTML = '';
+            carritoItems.forEach(function(item, i) {
+                var sub = item.precio * item.cantidad; total += sub;
+                tbody.innerHTML += '<tr><td>' + item.nombre + '</td><td>$' + item.precio.toFixed(2) + '</td>' +
+                    '<td><input type="number" min="1" max="' + item.stock + '" value="' + item.cantidad + '" style="width:55px;border:1px solid #c8a000;border-radius:3px;padding:2px 4px;" onchange="carritoModCantidad(' + i + ',this.value)" /></td>' +
+                    '<td>$' + sub.toFixed(2) + '</td>' +
+                    '<td><button class="btn-form-del" style="padding:2px 8px" onclick="carritoEliminar(' + i + ')">X</button></td></tr>';
+            });
+            document.getElementById('carrito-total').textContent = total.toFixed(2);
+            document.getElementById('btn-finalizar-compra').disabled = false;
+        }
+        function carritoModCantidad(idx, val) {
+            var cant = parseInt(val) || 1;
+            if (cant <= 0) cant = 1;
+            if (cant > carritoItems[idx].stock) { cant = carritoItems[idx].stock; alert('Stock máximo: ' + carritoItems[idx].stock); }
+            carritoItems[idx].cantidad = cant; carritoRenderTabla(); carritoActualizarBadge();
+        }
+        function carritoEliminar(idx) { carritoItems.splice(idx, 1); carritoRenderTabla(); carritoActualizarBadge(); }
+        function vaciarCarrito() {
+            if (!confirm('¿Vaciar el carrito?')) return;
+            carritoItems = []; carritoRenderTabla(); carritoActualizarBadge();
+        }
+        function abrirModalFormaPago() {
+            if (!carritoItems.length) return;
+            document.getElementById('modal-forma-pago').style.display = 'flex';
+        }
+        function cerrarModalFormaPago() { document.getElementById('modal-forma-pago').style.display = 'none'; }
+        function finalizarCompra() {
+            var formaPago = document.getElementById('sel-forma-pago').value;
+            document.getElementById('h-venta-forma-pago').value = formaPago;
+            var hiddenDiv = document.getElementById('h-venta-detalles');
+            hiddenDiv.innerHTML = '';
+            carritoItems.forEach(function(d, idx) {
+                hiddenDiv.innerHTML +=
+                    '<input type="hidden" name="Detalles[' + idx + '].ProductoId" value="' + d.id + '"/>' +
+                    '<input type="hidden" name="Detalles[' + idx + '].ProductoNombre" value="' + d.nombre + '"/>' +
+                    '<input type="hidden" name="Detalles[' + idx + '].Cantidad" value="' + d.cantidad + '"/>' +
+                    '<input type="hidden" name="Detalles[' + idx + '].PrecioUnitario" value="' + d.precio + '"/>';
+            });
+            carritoItems = []; carritoActualizarBadge();
+            document.getElementById('form-venta-cliente').submit();
+        }
+
+        // ── DETALLES PRODUCTO ──
+        function verDetallesProducto(id, nombre, precio, stock, perecedero, vencimiento, precioOriginal, tienePromo) {
+            var body = '<strong>Nombre:</strong> ' + nombre + '<br>';
+            if (tienePromo === true || tienePromo === 'true') {
+                body += '<strong>Precio original:</strong> <span style="text-decoration:line-through;color:#aaa;">$' + parseFloat(precioOriginal).toFixed(2) + '</span><br>';
+                body += '<strong>Precio con promo:</strong> <span style="color:#e74c3c;font-weight:700;">$' + parseFloat(precio).toFixed(2) + '</span> 🏷️<br>';
+            } else {
+                body += '<strong>Precio:</strong> $' + parseFloat(precio).toFixed(2) + '<br>';
+            }
+            body += '<strong>Stock disponible:</strong> ' + stock + ' unidades<br>' +
+                '<strong>Perecedero:</strong> ' + perecedero + '<br>' +
+                (vencimiento !== '-' ? '<strong>Vencimiento:</strong> ' + vencimiento + '<br>' : '') +
+                '<br><span style="color:' + (stock > 10 ? '#27ae60' : stock > 0 ? '#e67e22' : '#c0392b') + ';font-weight:700;">' +
+                (stock > 10 ? '✅ Stock disponible' : stock > 0 ? '⚠️ Stock limitado' : '❌ Sin stock') + '</span>';
+            document.getElementById('modal-producto-body').innerHTML = body;
+            document.getElementById('modal-producto').style.display = 'flex';
+        }
+        function cerrarModalProducto() { document.getElementById('modal-producto').style.display = 'none'; }
+
+        // ── MIS COMPRAS ──
+        function compraSeleccionar(row) {
+            document.querySelectorAll('#tabla-mis-compras tbody tr').forEach(r => r.classList.remove('selected'));
+            row.classList.add('selected');
+            compraSeleccionadaFila = row;
+            document.getElementById('btn-ver-det-compra').disabled = false;
+        }
+        function compraVerDetalle() {
+            if (!compraSeleccionadaFila) return;
+            var r = compraSeleccionadaFila;
+            var detalles = JSON.parse(r.dataset.detalles.replace(/&quot;/g, '"'));
+            var txt = 'DETALLE DE COMPRA #' + r.dataset.id + '\nFecha:         ' + r.dataset.fecha + '\nForma de Pago: ' + r.dataset.formapago + '\n\nPRODUCTOS:\n----------------------------------------------\n';
+            detalles.forEach(function(d) { txt += '- ' + d.nombre + '\n  Cantidad: ' + d.cantidad + '\n  Precio: $' + d.precio + '\n  Subtotal: $' + d.subtotal + '\n\n'; });
+            txt += '----------------------------------------------\nTOTAL: $' + r.dataset.total;
+            document.getElementById('modal-det-compra-body').textContent = txt;
+            document.getElementById('modal-det-compra').style.display = 'flex';
+        }
+        function cerrarModalDetCompra() { document.getElementById('modal-det-compra').style.display = 'none'; }
+        function comprasFiltrar() {
+            var desde = document.getElementById('comp-desde').value;
+            var hasta = document.getElementById('comp-hasta').value;
+            document.querySelectorAll('#tabla-mis-compras tbody tr').forEach(function(row) {
+                if (!row.dataset.fecha) return;
+                var p = row.dataset.fecha.split(' ')[0].split('/');
+                var f = p[2] + '-' + p[1] + '-' + p[0];
+                row.style.display = ((!desde || f >= desde) && (!hasta || f <= hasta)) ? '' : 'none';
+            });
+        }
+        function comprasLimpiar() {
+            document.getElementById('comp-desde').value = '';
+            document.getElementById('comp-hasta').value = '';
+            document.querySelectorAll('#tabla-mis-compras tbody tr').forEach(r => r.style.display = '');
+            compraSeleccionadaFila = null;
+            document.getElementById('btn-ver-det-compra').disabled = true;
+        }
+
+        // ── FAVORITOS ──
+        function toggleFavorito(id, nombre, precio, stock) {
+            fetch('/Favorito/Toggle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(id)
+            })
+            .then(r => r.json())
+            .then(function(data) {
+                if (!data.ok) { alert('Error: ' + data.error); return; }
+                var btn = document.getElementById('corazon-' + id);
+                if (data.esFavorito) {
+                    if (!favoritosItems.find(f => f.id === id))
+                        favoritosItems.push({ id: id, nombre: nombre, precio: precio, stock: stock });
+                    btn.textContent = '♥';
+                    btn.classList.add('corazon-activo');
+                } else {
+                    favoritosItems = favoritosItems.filter(f => f.id !== id);
+                    btn.textContent = '♡';
+                    btn.classList.remove('corazon-activo');
+                }
+                favRenderTabla();
+            })
+            .catch(function() { alert('Error de conexión.'); });
+        }
+
+        function sincronizarCorazones() {
+            document.querySelectorAll('.btn-corazon').forEach(function(btn) {
+                var id = parseInt(btn.id.replace('corazon-', ''));
+                var esFav = favoritosItems.some(function(f) { return f.id === id; });
+                btn.textContent = esFav ? '♥' : '♡';
+                if (esFav) btn.classList.add('corazon-activo');
+                else btn.classList.remove('corazon-activo');
+            });
+        }
+
+        function abrirModalAgregarFavorito() {
+            favProdSeleccionado = null;
+            document.querySelectorAll('#tabla-buscar-prod tbody tr').forEach(r => r.classList.remove('selected'));
+            document.getElementById('fav-buscar-input').value = '';
+            favFiltrarBusqueda('');
+            document.getElementById('modal-agregar-fav').style.display = 'flex';
+        }
+        function cerrarModalAgregarFav() { document.getElementById('modal-agregar-fav').style.display = 'none'; }
+        function favSeleccionarProducto(row, id, nombre, precio, stock) {
+            document.querySelectorAll('#tabla-buscar-prod tbody tr').forEach(r => r.classList.remove('selected'));
+            row.classList.add('selected');
+            favProdSeleccionado = { id, nombre, precio, stock };
+        }
+        function favFiltrarBusqueda(val) {
+            var q = val.toLowerCase();
+            document.querySelectorAll('#tabla-buscar-prod tbody tr').forEach(function(r) {
+                r.style.display = (!q || (r.dataset.nom || '').includes(q)) ? '' : 'none';
+            });
+        }
+
+        function favAgregarSeleccionado() {
+            if (!favProdSeleccionado) { alert('Seleccione un producto.'); return; }
+            if (favoritosItems.find(f => f.id === favProdSeleccionado.id)) { alert('Ya está en favoritos.'); return; }
+            fetch('/Favorito/Toggle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(favProdSeleccionado.id)
+            })
+            .then(r => r.json())
+            .then(function(data) {
+                if (!data.ok) { alert('Error: ' + data.error); return; }
+                if (data.esFavorito) {
+                    favoritosItems.push(favProdSeleccionado);
+                    favRenderTabla();
+                    sincronizarCorazones();
+                }
+                cerrarModalAgregarFav();
+            })
+            .catch(function() { alert('Error de conexión.'); });
+        }
+
+        function favEliminar(id) {
+            if (!confirm('¿Eliminar de favoritos?')) return;
+            fetch('/Favorito/Toggle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(id)
+            })
+            .then(r => r.json())
+            .then(function(data) {
+                if (!data.ok) { alert('Error: ' + data.error); return; }
+                favoritosItems = favoritosItems.filter(f => f.id !== id);
+                favRenderTabla();
+                sincronizarCorazones();
+            })
+            .catch(function() { alert('Error de conexión.'); });
+        }
+
+        function favRenderTabla() {
+            var tbody = document.getElementById('fav-tbody');
+            if (!favoritosItems.length) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#aaa;padding:14px;">No tenés favoritos agregados.</td></tr>';
+                document.getElementById('fav-total-lbl').textContent = 'Total de favoritos: 0';
+                return;
+            }
+            tbody.innerHTML = '';
+            favoritosItems.forEach(function(f) {
+                tbody.innerHTML += '<tr><td>' + f.id + '</td><td>' + f.nombre + '</td><td>$' + parseFloat(f.precio).toFixed(2) + '</td><td>' + f.stock + '</td>' +
+                    '<td><button class="btn-form-del" style="padding:2px 10px" onclick="favEliminar(' + f.id + ')">Eliminar</button></td></tr>';
+            });
+            document.getElementById('fav-total-lbl').textContent = 'Total de favoritos: ' + favoritosItems.length;
+        }
+
+        // ── PERFIL ──
+        function guardarPerfil() {
+            var nom = document.getElementById('pf-nombre').value.trim();
+            var ape = document.getElementById('pf-apellido').value.trim();
+            if (!nom || !ape) { alert('Nombre y apellido son obligatorios.'); return; }
+            document.getElementById('h-pf-nombre').value = nom;
+            document.getElementById('h-pf-apellido').value = ape;
+            document.getElementById('h-pf-dir').value = document.getElementById('pf-dir').value;
+            document.getElementById('form-perfil').submit();
+        }
+        function cancelarPerfil(nom, ape, dir) {
+            document.getElementById('pf-nombre').value = nom;
+            document.getElementById('pf-apellido').value = ape;
+            document.getElementById('pf-dir').value = dir;
+        }
+
+        // ── CAMBIO CONTRASEÑA ──
+        function abrirModalCambioContrasena() { document.getElementById('modal-cambio-pass').style.display = 'flex'; }
+        function cerrarModalCambioPass() {
+            document.getElementById('modal-cambio-pass').style.display = 'none';
+            ['pass-actual','pass-nueva','pass-confirmar'].forEach(function(id) { document.getElementById(id).value = ''; });
+        }
+        function guardarCambioPass() {
+            var actual = document.getElementById('pass-actual').value;
+            var nueva = document.getElementById('pass-nueva').value;
+            var conf = document.getElementById('pass-confirmar').value;
+            if (!actual || !nueva || !conf) { alert('Complete todos los campos.'); return; }
+            if (nueva !== conf) { alert('Las contraseñas no coinciden.'); return; }
+            document.getElementById('h-pass-actual').value = actual;
+            document.getElementById('h-pass-nueva').value = nueva;
+            document.getElementById('form-cambio-pass').submit();
+        }
+
+        // ── INIT ──
+        document.addEventListener('DOMContentLoaded', function() {
+            var hoy = new Date(), hace30 = new Date();
+            hace30.setDate(hoy.getDate() - 30);
+            function fmt(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+            var cd = document.getElementById('comp-desde'); if (cd) cd.value = fmt(hace30);
+            var ch = document.getElementById('comp-hasta'); if (ch) ch.value = fmt(hoy);
+            carritoActualizarBadge();
+
+            // Cargar favoritos desde BD
+            fetch('/Favorito/ObtenerFavoritos')
+                .then(r => r.json())
+                .then(function(data) {
+                    if (!data.ok) return;
+                    favoritosItems = data.items;
+                    favRenderTabla();
+                    sincronizarCorazones();
+                });
+        });
+    </script>
+}

@@ -1,0 +1,1872 @@
+﻿@* Views/Admin/Index.cshtml — con todos los fixes *@
+@{
+    ViewData["Title"] = "Panel Administrador";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@{
+    var productosVencer = ViewBag.ProductosProximosVencer as List<ENTIDADES.Producto> ?? new List<ENTIDADES.Producto>();
+    var actividadReciente = ViewBag.ActividadReciente as List<(DateTime Fecha, string Icono, string Descripcion, string Color)> ?? new List<(DateTime, string, string, string)>();
+    int ventasSemAct = ViewBag.VentasSemanaActual ?? 0;
+    int ventasSemPas = ViewBag.VentasSemanaPasada ?? 0;
+    int comprasSemAct = ViewBag.ComprasSemanaActual ?? 0;
+    int comprasSemPas = ViewBag.ComprasSemanaPasada ?? 0;
+}
+
+@* ══════════════════════════════════════════════
+   PANEL: INICIO / DASHBOARD
+   ══════════════════════════════════════════════ *@
+<div class="panel active" id="panel-inicio">
+    <div class="panel-header">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style="flex-shrink:0">
+            <path d="M2 9L9 2l7 7" stroke="#3a2500" stroke-width="1.3" fill="none" stroke-linecap="round" />
+            <rect x="5" y="9" width="8" height="7" rx="1" fill="#3a2500" />
+        </svg>
+        <h3>INICIO — PANEL DE INFORMACIÓN</h3>
+    </div>
+    <div class="panel-full" style="padding:18px;">
+
+        <div style="background:linear-gradient(135deg,#b8860b 0%,#d4a017 60%,#f5d060 100%);
+            border-radius:10px;padding:20px 24px;display:flex;align-items:center;
+            justify-content:space-between;margin-bottom:18px;
+            box-shadow:0 4px 15px rgba(184,134,11,0.3);flex-wrap:wrap;gap:12px;">
+            <div style="display:flex;align-items:center;gap:16px;">
+                <div style="width:60px;height:60px;background:#fff;border-radius:50%;
+                    display:flex;align-items:center;justify-content:center;
+                    box-shadow:0 2px 8px rgba(0,0,0,0.15);">
+                    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+                        <circle cx="18" cy="18" r="17" fill="#d4a017" />
+                        <path d="M8 22l5-8 4 5 3-4 5 7H8z" fill="#fff" />
+                        <circle cx="24" cy="12" r="3" fill="#fff" />
+                    </svg>
+                </div>
+                <div>
+                    <div style="font-size:22px;font-weight:800;color:#3a2500;letter-spacing:1px;">🛒 FrescoMarket</div>
+                    <div style="font-size:11px;color:#5a3e00;font-weight:600;margin-top:2px;">Sistema de Gestión de Minimarket</div>
+                    <div style="font-size:10px;color:#7a5500;margin-top:1px;">Versión 1.0.0</div>
+                </div>
+            </div>
+            <div style="text-align:right;">
+                <div id="dash-hora" style="font-size:28px;font-weight:800;color:#3a2500;letter-spacing:2px;font-family:'Courier New',monospace;"></div>
+                <div id="dash-fecha" style="font-size:12px;color:#5a3e00;font-weight:600;margin-top:2px;"></div>
+            </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;">
+            <div style="background:#fff;border:1.5px solid #e8c840;border-radius:8px;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(184,134,11,0.1);transition:transform 0.15s;"
+                 onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+                <div style="font-size:28px;margin-bottom:6px;">👥</div>
+                <div style="font-size:26px;font-weight:800;color:#b8860b;">@(ViewBag.CantClientes ?? 0)</div>
+                <div style="font-size:10px;font-weight:700;color:#7a5500;letter-spacing:0.5px;margin-top:4px;">CLIENTES</div>
+            </div>
+            <div style="background:#fff;border:1.5px solid #e8c840;border-radius:8px;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(184,134,11,0.1);transition:transform 0.15s;"
+                 onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+                <div style="font-size:28px;margin-bottom:6px;">🔐</div>
+                <div style="font-size:26px;font-weight:800;color:#b8860b;">@(ViewBag.UsuariosActivos ?? 0)</div>
+                <div style="font-size:10px;font-weight:700;color:#7a5500;letter-spacing:0.5px;margin-top:4px;">USUARIOS ACTIVOS</div>
+            </div>
+            <div style="background:#fff;border:1.5px solid @((int)(ViewBag.OfertasPendientes ?? 0) > 0 ? "#e67e22" : "#e8c840");border-radius:8px;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(184,134,11,0.1);transition:transform 0.15s;"
+                 onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+                <div style="font-size:28px;margin-bottom:6px;">📋</div>
+                <div style="font-size:26px;font-weight:800;color:@((int)(ViewBag.OfertasPendientes ?? 0) > 0 ? "#e67e22" : "#b8860b");">@(ViewBag.OfertasPendientes ?? 0)</div>
+                <div style="font-size:10px;font-weight:700;color:#7a5500;letter-spacing:0.5px;margin-top:4px;">OFERTAS PENDIENTES</div>
+            </div>
+            <div style="background:#fff;border:1.5px solid #e8c840;border-radius:8px;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(184,134,11,0.1);transition:transform 0.15s;"
+                 onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+                <div style="font-size:28px;margin-bottom:6px;">💰</div>
+                <div style="font-size:26px;font-weight:800;color:#27ae60;">@(ViewBag.VentasHoy ?? 0)</div>
+                <div style="font-size:10px;font-weight:700;color:#7a5500;letter-spacing:0.5px;margin-top:4px;">VENTAS HOY</div>
+            </div>
+            <div style="background:#fff;border:1.5px solid #e8c840;border-radius:8px;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(184,134,11,0.1);transition:transform 0.15s;"
+                 onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+                <div style="font-size:28px;margin-bottom:6px;">📦</div>
+                <div style="font-size:26px;font-weight:800;color:#2980b9;">@(ViewBag.ComprasHoy ?? 0)</div>
+                <div style="font-size:10px;font-weight:700;color:#7a5500;letter-spacing:0.5px;margin-top:4px;">COMPRAS HOY</div>
+            </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">
+            <div style="background:#fff;border:1.5px solid #e8c840;border-radius:8px;padding:14px;box-shadow:0 2px 8px rgba(184,134,11,0.1);">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;border-bottom:1px solid #f0d080;padding-bottom:8px;">
+                    <span style="font-size:16px;">📈</span>
+                    <span style="font-size:11px;font-weight:800;color:#5a3e00;letter-spacing:0.5px;">VENTAS — COMPARATIVA SEMANAL</span>
+                </div>
+                <div style="display:flex;gap:12px;align-items:center;justify-content:space-around;">
+                    <div style="text-align:center;">
+                        <div style="font-size:10px;color:#7a5500;font-weight:700;margin-bottom:4px;">ESTA SEMANA</div>
+                        <div style="font-size:28px;font-weight:800;color:#27ae60;">@ventasSemAct</div>
+                    </div>
+                    <div style="font-size:20px;color:#ccc;">vs</div>
+                    <div style="text-align:center;">
+                        <div style="font-size:10px;color:#7a5500;font-weight:700;margin-bottom:4px;">SEMANA PASADA</div>
+                        <div style="font-size:28px;font-weight:800;color:#95a5a6;">@ventasSemPas</div>
+                    </div>
+                    <div style="text-align:center;">
+                        @{
+                            var diffVentas = ventasSemAct - ventasSemPas;
+                            var colorVentas = diffVentas >= 0 ? "#27ae60" : "#c0392b";
+                            var iconoVentas = diffVentas > 0 ? "↑" : diffVentas < 0 ? "↓" : "=";
+                        }
+                        <div style="font-size:10px;color:#7a5500;font-weight:700;margin-bottom:4px;">DIFERENCIA</div>
+                        <div style="font-size:22px;font-weight:800;color:@colorVentas;">@iconoVentas @Math.Abs(diffVentas)</div>
+                    </div>
+                </div>
+            </div>
+            <div style="background:#fff;border:1.5px solid #e8c840;border-radius:8px;padding:14px;box-shadow:0 2px 8px rgba(184,134,11,0.1);">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;border-bottom:1px solid #f0d080;padding-bottom:8px;">
+                    <span style="font-size:16px;">📉</span>
+                    <span style="font-size:11px;font-weight:800;color:#5a3e00;letter-spacing:0.5px;">COMPRAS — COMPARATIVA SEMANAL</span>
+                </div>
+                <div style="display:flex;gap:12px;align-items:center;justify-content:space-around;">
+                    <div style="text-align:center;">
+                        <div style="font-size:10px;color:#7a5500;font-weight:700;margin-bottom:4px;">ESTA SEMANA</div>
+                        <div style="font-size:28px;font-weight:800;color:#2980b9;">@comprasSemAct</div>
+                    </div>
+                    <div style="font-size:20px;color:#ccc;">vs</div>
+                    <div style="text-align:center;">
+                        <div style="font-size:10px;color:#7a5500;font-weight:700;margin-bottom:4px;">SEMANA PASADA</div>
+                        <div style="font-size:28px;font-weight:800;color:#95a5a6;">@comprasSemPas</div>
+                    </div>
+                    <div style="text-align:center;">
+                        @{
+                            var diffCompras = comprasSemAct - comprasSemPas;
+                            var colorCompras = diffCompras >= 0 ? "#27ae60" : "#c0392b";
+                            var iconoCompras = diffCompras > 0 ? "↑" : diffCompras < 0 ? "↓" : "=";
+                        }
+                        <div style="font-size:10px;color:#7a5500;font-weight:700;margin-bottom:4px;">DIFERENCIA</div>
+                        <div style="font-size:22px;font-weight:800;color:@colorCompras;">@iconoCompras @Math.Abs(diffCompras)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+            <div style="background:#fff;border:1.5px solid #e8c840;border-radius:8px;padding:14px;box-shadow:0 2px 8px rgba(184,134,11,0.1);">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;border-bottom:1px solid #f0d080;padding-bottom:8px;">
+                    <span style="font-size:16px;">🕐</span>
+                    <span style="font-size:11px;font-weight:800;color:#5a3e00;letter-spacing:0.5px;">ACTIVIDAD RECIENTE</span>
+                </div>
+                @if (!actividadReciente.Any())
+                {
+                    <div style="text-align:center;color:#aaa;font-size:11px;padding:10px 0;">Sin actividad registrada</div>
+                }
+                else
+                {
+                    <div style="display:flex;flex-direction:column;gap:6px;max-height:180px;overflow-y:auto;">
+                        @foreach (var act in actividadReciente)
+                        {
+                            <div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid #f5f0e0;">
+                                <span style="font-size:14px;flex-shrink:0;">@act.Icono</span>
+                                <div style="flex:1;min-width:0;">
+                                    <div style="font-size:10px;color:@act.Color;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@act.Descripcion</div>
+                                    <div style="font-size:9px;color:#aaa;margin-top:1px;">@act.Fecha.ToString("dd/MM HH:mm")</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+            <div style="background:#fff;border:1.5px solid @(productosVencer.Any() ? "#e67e22" : "#e8c840");border-radius:8px;padding:14px;box-shadow:0 2px 8px rgba(184,134,11,0.1);">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;border-bottom:1px solid #f0d080;padding-bottom:8px;">
+                    <span style="font-size:16px;">⚠️</span>
+                    <span style="font-size:11px;font-weight:800;color:#5a3e00;letter-spacing:0.5px;">PRÓXIMOS A VENCER</span>
+                    <span style="margin-left:auto;background:@(productosVencer.Any() ? "#e67e22" : "#27ae60");color:#fff;border-radius:12px;padding:1px 8px;font-size:10px;font-weight:700;">
+                        @productosVencer.Count
+                    </span>
+                </div>
+                @if (!productosVencer.Any())
+                {
+                    <div style="text-align:center;color:#27ae60;font-size:11px;font-weight:700;padding:10px 0;">✅ Ningún producto vence en 7 días</div>
+                }
+                else
+                {
+                    <div style="max-height:180px;overflow-y:auto;">
+                        @foreach (var pv in productosVencer)
+                        {
+                            var diasRestantes = (pv.FechaVencimiento!.Value.Date - DateTime.Now.Date).Days;
+                            var colorDias = diasRestantes <= 2 ? "#c0392b" : "#e67e22";
+                            <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f5f0e0;font-size:11px;">
+                                <span style="color:#2a1800;font-weight:600;">@pv.Nombre</span>
+                                <span style="color:@colorDias;font-weight:700;font-size:10px;">
+                                    @(diasRestantes == 0 ? "¡Hoy!" : diasRestantes == 1 ? "Mañana" : $"{diasRestantes} días")
+                                </span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+            <div style="background:#fff;border:1.5px solid #e8c840;border-radius:8px;padding:14px;box-shadow:0 2px 8px rgba(184,134,11,0.1);">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;border-bottom:1px solid #f0d080;padding-bottom:8px;">
+                    <span style="font-size:16px;">🛡️</span>
+                    <span style="font-size:11px;font-weight:800;color:#5a3e00;letter-spacing:0.5px;">ESTADO DEL SISTEMA</span>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px;font-size:11px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;background:#fffbe6;border-radius:4px;padding:6px 10px;">
+                        <span style="color:#7a5500;font-weight:600;">🗄️ Base de datos</span>
+                        <span style="color:#27ae60;font-weight:700;">● Conectada</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;background:#fffbe6;border-radius:4px;padding:6px 10px;">
+                        <span style="color:#7a5500;font-weight:600;">⚙️ Sistema</span>
+                        <span style="color:#27ae60;font-weight:700;">● Operativo</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ══════════════════════════════════════════════
+   PANEL: CLIENTES
+   ══════════════════════════════════════════════ *@
+<div class="panel" id="panel-clientes">
+    <div class="panel-header">
+        <img src="~/images/icon-clientes.png" alt="" onerror="this.style.display='none'" />
+        <h3>REGISTRO CLIENTES</h3>
+    </div>
+    <div class="panel-body">
+        <div class="panel-form-col">
+            <div class="form-box">
+                <div class="form-section-title">DATOS DEL CLIENTE</div>
+                <div class="form-field">
+                    <label>DOCUMENTO:</label>
+                    <input type="text" id="cli-doc" maxlength="8" placeholder="12345678" />
+                </div>
+                <div class="form-field">
+                    <label>NOMBRE:</label>
+                    <input type="text" id="cli-nombre" />
+                </div>
+                <div class="form-field">
+                    <label>APELLIDO:</label>
+                    <input type="text" id="cli-apellido" />
+                </div>
+                <div class="form-field">
+                    <label>DIRECCIÓN:</label>
+                    <input type="text" id="cli-dir" />
+                </div>
+                <form asp-controller="Cliente" asp-action="Crear" method="post" id="form-cliente-crear">
+                    <input type="hidden" name="Documento" id="h-cli-doc" />
+                    <input type="hidden" name="Nombre" id="h-cli-nombre" />
+                    <input type="hidden" name="Apellido" id="h-cli-apellido" />
+                    <input type="hidden" name="Direccion" id="h-cli-dir" />
+                    <input type="hidden" name="__panel" value="clientes" />
+                </form>
+                <form asp-controller="Cliente" asp-action="Editar" method="post" id="form-cliente-editar">
+                    <input type="hidden" name="Id" id="h-cli-edit-id" />
+                    <input type="hidden" name="Documento" id="h-cli-edit-doc" />
+                    <input type="hidden" name="Nombre" id="h-cli-edit-nombre" />
+                    <input type="hidden" name="Apellido" id="h-cli-edit-apellido" />
+                    <input type="hidden" name="Direccion" id="h-cli-edit-dir" />
+                    <input type="hidden" name="__panel" value="clientes" />
+                </form>
+                <form asp-controller="Cliente" asp-action="Eliminar" method="post" id="form-cliente-eliminar">
+                    <input type="hidden" name="id" id="h-cli-id" />
+                    <input type="hidden" name="__panel" value="clientes" />
+                </form>
+                @* Form para asignar usuario default al cliente *@
+                <form asp-controller="Cliente" asp-action="AsignarUsuarioDefault" method="post" id="form-cli-asignar-usuario">
+                    <input type="hidden" name="id" id="h-cli-asignar-id" />
+                    <input type="hidden" name="__panel" value="clientes" />
+                </form>
+                <button type="button" class="btn-form-save" id="btn-cli-guardar" onclick="clienteGuardarOActualizar()">GUARDAR</button>
+                <div class="btn-form-row">
+                    <button type="button" class="btn-form-del" onclick="clienteEliminar()">ELIMINAR</button>
+                    <button type="button" class="btn-form-mod" onclick="clienteModoEdicion()">MODIFICAR</button>
+                </div>
+            </div>
+        </div>
+        <div class="panel-table-col">
+            <div class="search-bar">
+                <label>BUSCAR CLIENTES:</label>
+                <input type="text" id="search-clientes" oninput="filtrarClientes(this.value)" />
+                <button class="btn-search" onclick="filtrarClientes(document.getElementById('search-clientes').value)">BUSCA</button>
+                <button class="btn-clear" onclick="document.getElementById('search-clientes').value='';filtrarClientes('')">LIMPIAR</button>
+            </div>
+            <div class="data-table-wrap">
+                <table class="data-table" id="tabla-clientes">
+                    <thead>
+                        <tr><th>Documento</th><th>Nombre</th><th>Apellido</th><th>Dirección</th><th>Usuario</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var c in ViewBag.Clientes as List<ENTIDADES.Cliente> ?? new List<ENTIDADES.Cliente>())
+                        {
+                            <tr onclick="seleccionarCliente(this,'@c.Id','@c.Documento','@c.Nombre','@c.Apellido','@Html.Raw(c.Direccion?.Replace("'", "\\'") ?? "")','@(c.Usuario?.NombreUsuario ?? "")')"
+                                data-doc="@c.Documento"
+                                data-nom="@(c.Nombre + " " + c.Apellido)"
+                                data-tiene-usuario="@(c.Usuario != null ? "si" : "no")">
+                                <td>@c.Documento</td>
+                                <td>@c.Nombre</td>
+                                <td>@c.Apellido</td>
+                                <td>@c.Direccion</td>
+                                <td>@(c.Usuario?.NombreUsuario ?? "—")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            @* ── TABLA FOOTER CLIENTES — botones nuevos ── *@
+            <div class="table-footer">
+                <button class="btn-add-user"
+                        id="btn-asignar-usuario-cli"
+                        onclick="clienteAsignarUsuario()"
+                        disabled>
+                    ASIGNAR USUARIO
+                </button>
+               
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ══════════════════════════════════════════════
+   PANEL: PRODUCTOS
+   ══════════════════════════════════════════════ *@
+<div class="panel" id="panel-productos">
+    <div class="panel-header">
+        <img src="~/images/icon-productos.png" alt="" onerror="this.style.display='none'" />
+        <h3>REGISTRO PRODUCTOS</h3>
+    </div>
+    <div class="panel-body">
+        <div class="panel-form-col">
+            <div class="form-box">
+                <div class="form-section-title">DATOS DEL PRODUCTO</div>
+                <div class="form-field"><label>NOMBRE:</label><input type="text" id="prod-nombre" /></div>
+                <div class="form-field">
+                    <label>CÓDIGO DE BARRAS:</label>
+                    <input type="text" id="prod-codigo" maxlength="8" placeholder="12345678" />
+                </div>
+                <div class="form-field"><label>PRECIO:</label><input type="number" id="prod-precio" step="0.01" min="0" /></div>
+                <div class="form-field"><label>STOCK:</label><input type="number" id="prod-stock" min="0" /></div>
+                <div class="form-field" style="display:flex;align-items:center;gap:5px;">
+                    <input type="checkbox" id="prod-perecedero" onchange="toggleFechaVenc(this)" />
+                    <label class="form-check-label" for="prod-perecedero">Es Perecedero</label>
+                </div>
+                <div class="form-field" id="div-fecha-venc" style="display:none">
+                    <label>FECHA VENCIMIENTO:</label>
+                    <input type="date" id="prod-fecha-venc" />
+                </div>
+                <form asp-controller="Producto" asp-action="Crear" method="post" id="form-prod-crear">
+                    <input type="hidden" name="Nombre" id="h-prod-nombre" />
+                    <input type="hidden" name="CodigoBarra" id="h-prod-codigo" />
+                    <input type="hidden" name="Precio" id="h-prod-precio" />
+                    <input type="hidden" name="Stock" id="h-prod-stock" />
+                    <input type="hidden" name="EsPerecedero" id="h-prod-perecedero" />
+                    <input type="hidden" name="FechaVencimiento" id="h-prod-fecha-venc" />
+                    <input type="hidden" name="__panel" value="productos" />
+                </form>
+                <form asp-controller="Producto" asp-action="Editar" method="post" id="form-prod-editar">
+                    <input type="hidden" name="Id" id="h-prod-edit-id" />
+                    <input type="hidden" name="Nombre" id="h-prod-edit-nombre" />
+                    <input type="hidden" name="CodigoBarra" id="h-prod-edit-codigo" />
+                    <input type="hidden" name="Precio" id="h-prod-edit-precio" />
+                    <input type="hidden" name="Stock" id="h-prod-edit-stock" />
+                    <input type="hidden" name="EsPerecedero" id="h-prod-edit-perecedero" />
+                    <input type="hidden" name="FechaVencimiento" id="h-prod-edit-fecha-venc" />
+                    <input type="hidden" name="__panel" value="productos" />
+                </form>
+                <form asp-controller="Producto" asp-action="Eliminar" method="post" id="form-prod-eliminar">
+                    <input type="hidden" name="id" id="h-prod-del-id" />
+                    <input type="hidden" name="__panel" value="productos" />
+                </form>
+                <button type="button" class="btn-form-save" id="btn-prod-guardar" onclick="productoGuardarOActualizar()">GUARDAR</button>
+                <div class="btn-form-row">
+                    <button type="button" class="btn-form-del" onclick="productoEliminar()">ELIMINAR</button>
+                    <button type="button" class="btn-form-mod" onclick="productoModoEdicion()">MODIFICAR</button>
+                </div>
+            </div>
+        </div>
+        <div class="panel-table-col">
+            <div class="search-bar">
+                <label>BUSCAR PRODUCTO:</label>
+                <input type="text" id="search-productos" oninput="filtrarProductos(this.value)" />
+                <button class="btn-search" onclick="filtrarProductos(document.getElementById('search-productos').value)">BUSCA</button>
+                <button class="btn-clear" onclick="document.getElementById('search-productos').value='';filtrarProductos('')">LIMPIAR</button>
+            </div>
+            <div class="data-table-wrap">
+                <table class="data-table" id="tabla-productos">
+                    <thead>
+                        <tr><th>ID</th><th>Nombre</th><th>Código</th><th>Perecedero</th><th>Vencimiento</th><th>Precio</th><th>Stock</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in ViewBag.TodosProductos as List<ENTIDADES.Producto> ?? new List<ENTIDADES.Producto>())
+                        {
+                            <tr onclick="seleccionarProducto(this,'@p.Id','@p.Nombre','@p.CodigoBarra','@p.Precio','@p.Stock','@p.EsPerecedero','@(p.FechaVencimiento?.ToString("yyyy-MM-dd") ?? "")')"
+                                data-nom="@p.Nombre" data-cod="@p.CodigoBarra">
+                                <td>@p.Id</td>
+                                <td>@p.Nombre</td>
+                                <td>@p.CodigoBarra</td>
+                                <td style="text-align:center">@(p.EsPerecedero ? "✓" : "")</td>
+                                <td>@(p.FechaVencimiento?.ToString("dd/MM/yyyy") ?? "—")</td>
+                                <td>$@p.Precio.ToString("N2")</td>
+                                <td>@p.Stock</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ══════════════════════════════════════════════
+   PANEL: NUEVA VENTA
+   ══════════════════════════════════════════════ *@
+<div class="panel" id="panel-nueva-venta">
+    <div class="panel-header">
+        <img src="~/images/icon-venta.png" alt="" onerror="this.style.display='none'" />
+        <h3>NUEVA VENTA</h3>
+    </div>
+    <div class="panel-full">
+        <form asp-controller="Venta" asp-action="Crear" method="post">
+            <input type="hidden" name="__panel" value="nueva-venta" />
+            <div class="panel-row">
+                <div class="panel-field">
+                    <label>CLIENTE</label>
+                    <select name="ClienteId">
+                        <option value="">— Seleccione cliente —</option>
+                        @foreach (var c in ViewBag.Clientes as List<ENTIDADES.Cliente> ?? new List<ENTIDADES.Cliente>())
+                        {
+                            <option value="@c.Id">@c.DatosCompletos</option>
+                        }
+                    </select>
+                </div>
+                <div class="panel-field">
+                    <label>FORMA DE PAGO</label>
+                    <select name="FormaPago">
+                        <option value="Efectivo">Efectivo (15% desc.)</option>
+                        <option value="Tarjeta de Crédito">Tarjeta de Crédito (10% rec.)</option>
+                        <option value="Tarjeta de Débito">Tarjeta de Débito</option>
+                    </select>
+                </div>
+            </div>
+            <div class="sub-title">AGREGAR PRODUCTO</div>
+            <div class="agregar-row">
+                <div class="panel-field">
+                    <label>PRODUCTO</label>
+                    <select id="venta-sel-producto">
+                        <option value="">— Seleccione —</option>
+                        @{
+                            var promosVigentes = ViewBag.PromocionesVigentes as List<ENTIDADES.Promocion> ?? new List<ENTIDADES.Promocion>();
+                        }
+                        @foreach (var p in ViewBag.Productos as List<ENTIDADES.Producto> ?? new List<ENTIDADES.Producto>())
+                        {
+                            var promo = promosVigentes.FirstOrDefault(pr => pr.ProductoId == p.Id);
+                            var precioFinal = promo != null ? promo.AplicarDescuento(p.Precio) : p.Precio;
+                            var labelPromo = promo != null ? " 🏷️ PROMO" : "";
+                            <option value="@p.Id"
+                                    data-precio="@precioFinal"
+                                    data-preciooriginal="@p.Precio"
+                                    data-nombre="@p.Nombre"
+                                    data-stock="@p.Stock"
+                                    data-tienepromo="@(promo != null ? "true" : "false")">
+                                @p.Nombre@labelPromo — $@precioFinal.ToString("N2") (Stock: @p.Stock)
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="panel-field small">
+                    <label>CANTIDAD</label>
+                    <input type="number" id="venta-cantidad" min="1" value="1" />
+                </div>
+                <button type="button" class="btn-agregar" onclick="ventaAgregarProducto()">+ AGREGAR</button>
+            </div>
+            <div class="data-table-wrap">
+                <table class="data-table">
+                    <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio Unit.</th><th>Subtotal</th><th></th></tr></thead>
+                    <tbody id="venta-tbody"><tr id="venta-empty-row"><td colspan="5" style="text-align:center;color:#aaa;padding:12px;">Agregue productos...</td></tr></tbody>
+                </table>
+            </div>
+            <div class="total-row">TOTAL: $<span id="venta-total">0.00</span></div>
+            <div id="venta-hidden-inputs"></div>
+            <div style="display:flex;gap:8px;margin-top:10px;">
+                <button type="submit" class="btn-finalizar" id="btn-finalizar-venta" disabled>FINALIZAR VENTA</button>
+                <button type="button" class="btn-cancelar" onclick="ventaLimpiar()">LIMPIAR</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@* ══════════════════════════════════════════════
+   PANEL: VENTAS TOTALES
+   ══════════════════════════════════════════════ *@
+<div class="panel" id="panel-ventas-totales">
+    <div class="panel-header">
+        <img src="~/images/icon-ventas.png" alt="" onerror="this.style.display='none'" />
+        <h3>VENTAS TOTALES</h3>
+    </div>
+    <div class="panel-body">
+        <div class="panel-form-col">
+            <div class="form-box" style="display:flex;flex-direction:column;gap:5px;">
+                <div class="form-section-title">ACCIONES</div>
+                <div style="display:flex;flex-direction:column;align-items:center;padding:8px 0 4px;">
+                    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+                        <circle cx="18" cy="11" r="8" fill="#d4a017" />
+                        <path d="M3 34c0-8 6.7-15 15-15s15 6.7 15 15" fill="#d4a017" />
+                    </svg>
+                    <span style="font-size:9.5px;font-weight:700;color:#5a3e00;margin-top:4px;text-align:center">ADMINISTRADOR</span>
+                </div>
+                <button class="btn-form-save" id="btn-vt-detalle" style="background:#2980b9;border-color:#1a5276;color:#fff" onclick="ventaVerDetalle()" disabled>VER DETALLE</button>
+                <button class="btn-form-del" id="btn-vt-eliminar" onclick="ventaEliminarSeleccionada()" disabled>ELIMINAR</button>
+                <button class="btn-form-save" style="background:#8e44ad;border-color:#6c3483;color:#fff" onclick="ventaMostrarEstadisticas()">ESTADÍSTICAS</button>
+                <button class="btn-form-save" style="margin-top:6px" onclick="abrirModalInforme('ventas')">GENERAR INFORME</button>
+            </div>
+        </div>
+        <div class="panel-table-col">
+            <div class="search-bar" style="flex-wrap:wrap;gap:5px;">
+                <label class="vt-lbl">DESDE</label>
+                <input type="date" id="vt-desde" class="vt-date" />
+                <label class="vt-lbl">HASTA</label>
+                <input type="date" id="vt-hasta" class="vt-date" />
+                <button class="btn-search" onclick="filtrarVentasFecha()">BUSCAR</button>
+                <button class="btn-clear" onclick="limpiarFiltroVentas()">LIMPIAR</button>
+            </div>
+            <div class="search-bar" style="margin-top:4px">
+                <label>BUSCAR:</label>
+                <input type="text" id="search-ventas" oninput="filtrarVentas(this.value)" placeholder="Cliente, forma de pago..." />
+            </div>
+            <div class="data-table-wrap">
+                <table class="data-table" id="tabla-ventas">
+                    <thead><tr><th>ID</th><th>Fecha</th><th>Cliente</th><th>Forma Pago</th><th>Total</th></tr></thead>
+                    <tbody>
+                        @foreach (var v in ViewBag.Ventas as List<ENTIDADES.Venta> ?? new List<ENTIDADES.Venta>())
+                        {
+                            <tr onclick="ventaSeleccionarFila(this, @v.Id)"
+                                data-id="@v.Id" data-fecha="@v.FechaVenta.ToString("dd/MM/yyyy HH:mm")"
+                                data-cliente="@v.Cliente?.ToString()" data-formapago="@v.FormaPago"
+                                data-total="@v.Total.ToString("N2")"
+                                data-detalles="@Html.Raw(System.Text.Json.JsonSerializer.Serialize(v.Detalles.Select(d => new { nombre = d.ProductoNombre, cantidad = d.Cantidad, precio = d.PrecioUnitario.ToString("N2"), subtotal = d.Subtotal.ToString("N2") })).Replace("\"", "&quot;"))">
+                                <td>@v.Id</td>
+                                <td>@v.FechaVenta.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@v.Cliente?.ToString()</td>
+                                <td>@v.FormaPago</td>
+                                <td>$@v.Total.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="total-row">TOTAL: $<span id="vt-total-label">@((ViewBag.Ventas as List<ENTIDADES.Venta> ?? new List<ENTIDADES.Venta>()).Sum(v => v.Total).ToString("N2"))</span></div>
+            <form asp-controller="Venta" asp-action="Eliminar" method="post" id="form-vt-eliminar">
+                <input type="hidden" name="id" id="vt-eliminar-id" />
+                <input type="hidden" name="__panel" value="ventas-totales" />
+            </form>
+        </div>
+    </div>
+</div>
+
+@* ══════════════════════════════════════════════
+   PANEL: PROVEEDORES
+   ══════════════════════════════════════════════ *@
+<div class="panel" id="panel-proveedores">
+    <div class="panel-header">
+        <img src="~/images/icon-proveedor.png" alt="" onerror="this.style.display='none'" />
+        <h3>REGISTRO PROVEEDORES</h3>
+    </div>
+    <div class="panel-body">
+        <div class="panel-form-col">
+            <div class="form-box">
+                <div class="form-section-title">DATOS DEL PROVEEDOR</div>
+                <div class="form-field"><label>CUIT (11 dígitos):</label><input type="text" id="prov-cuit" maxlength="11" placeholder="20123456789" /></div>
+                <div class="form-field"><label>RAZÓN SOCIAL:</label><input type="text" id="prov-razon" /></div>
+                <div class="form-field"><label>TELÉFONO:</label><input type="text" id="prov-tel" /></div>
+                <div class="form-field"><label>EMAIL:</label><input type="email" id="prov-email" /></div>
+                <div class="form-field"><label>DIRECCIÓN:</label><input type="text" id="prov-dir" /></div>
+                <form asp-controller="Proveedor" asp-action="Crear" method="post" id="form-prov-crear">
+                    <input type="hidden" name="Cuit" id="h-prov-cuit" />
+                    <input type="hidden" name="RazonSocial" id="h-prov-razon" />
+                    <input type="hidden" name="Telefono" id="h-prov-tel" />
+                    <input type="hidden" name="Email" id="h-prov-email" />
+                    <input type="hidden" name="Direccion" id="h-prov-dir" />
+                    <input type="hidden" name="__panel" value="proveedores" />
+                </form>
+                <form asp-controller="Proveedor" asp-action="Editar" method="post" id="form-prov-editar">
+                    <input type="hidden" name="Id" id="h-prov-edit-id" />
+                    <input type="hidden" name="Cuit" id="h-prov-edit-cuit" />
+                    <input type="hidden" name="RazonSocial" id="h-prov-edit-razon" />
+                    <input type="hidden" name="Telefono" id="h-prov-edit-tel" />
+                    <input type="hidden" name="Email" id="h-prov-edit-email" />
+                    <input type="hidden" name="Direccion" id="h-prov-edit-dir" />
+                    <input type="hidden" name="__panel" value="proveedores" />
+                </form>
+                <form asp-controller="Proveedor" asp-action="Eliminar" method="post" id="form-prov-eliminar">
+                    <input type="hidden" name="id" id="h-prov-del-id" />
+                    <input type="hidden" name="__panel" value="proveedores" />
+                </form>
+                @* Form para asignar usuario default al proveedor *@
+                <form asp-controller="Proveedor" asp-action="AsignarUsuarioDefault" method="post" id="form-prov-asignar-usuario">
+                    <input type="hidden" name="id" id="h-prov-asignar-id" />
+                    <input type="hidden" name="__panel" value="proveedores" />
+                </form>
+                <button type="button" class="btn-form-save" id="btn-prov-guardar" onclick="proveedorGuardarOActualizar()">GUARDAR</button>
+                <div class="btn-form-row">
+                    <button type="button" class="btn-form-del" onclick="proveedorEliminar()">ELIMINAR</button>
+                    <button type="button" class="btn-form-mod" onclick="proveedorModoEdicion()">MODIFICAR</button>
+                </div>
+            </div>
+        </div>
+        <div class="panel-table-col">
+            <div class="search-bar">
+                <label>BUSCAR PROVEEDOR:</label>
+                <input type="text" id="search-proveedores" oninput="filtrarProveedores(this.value)" />
+                <button class="btn-search" onclick="filtrarProveedores(document.getElementById('search-proveedores').value)">BUSCA</button>
+                <button class="btn-clear" onclick="document.getElementById('search-proveedores').value='';filtrarProveedores('')">LIMPIAR</button>
+            </div>
+            <div class="data-table-wrap">
+                <table class="data-table" id="tabla-proveedores">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>CUIT</th>
+                            <th>Razón Social</th>
+                            <th>Teléfono</th>
+                            <th>Email</th>
+                            <th>Dirección</th>
+                            <th>Usuario</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in ViewBag.Proveedores as List<ENTIDADES.Proveedor> ?? new List<ENTIDADES.Proveedor>())
+                        {
+                            <tr onclick="seleccionarProveedor(this,'@p.Id','@p.Cuit','@Html.Raw(p.RazonSocial?.Replace("'", "\\'") ?? "")','@p.Telefono','@p.Email','@Html.Raw(p.Direccion?.Replace("'", "\\'") ?? "")','@(p.Usuario?.NombreUsuario ?? "")')"
+                                data-razon="@p.RazonSocial"
+                                data-cuit="@p.Cuit"
+                                data-tiene-usuario="@(p.Usuario != null ? "si" : "no")">
+                                <td>@p.Id</td>
+                                <td>@p.Cuit</td>
+                                <td>@p.RazonSocial</td>
+                                <td>@p.Telefono</td>
+                                <td>@p.Email</td>
+                                <td>@p.Direccion</td>
+                                <td>@(p.Usuario?.NombreUsuario ?? "—")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            @* ── TABLA FOOTER PROVEEDORES — botones nuevos ── *@
+            <div class="table-footer">
+                <button class="btn-add-user"
+                        id="btn-asignar-usuario-prov"
+                        onclick="proveedorAsignarUsuario()"
+                        disabled>
+                    ASIGNAR USUARIO
+                </button>
+                <button class="btn-add-user"
+                        id="btn-asignar-productos-prov"
+                        onclick="abrirModalAsignarProductos()"
+                        disabled>
+                    ASIGNAR PRODUCTOS
+                </button>
+                <button class="btn-add-user"
+                        id="btn-ver-catalogo-prov"
+                        onclick="abrirModalCatalogo()"
+                        disabled>
+                    VER CATÁLOGO               
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ══════════════════════════════════════════════
+   PANEL: NUEVA COMPRA
+   ══════════════════════════════════════════════ *@
+<div class="panel" id="panel-nueva-compra">
+    <div class="panel-header">
+        <img src="~/images/icon-compra.png" alt="" onerror="this.style.display='none'" />
+        <h3>NUEVA COMPRA</h3>
+    </div>
+    <div class="panel-full">
+        <form asp-controller="Compra" asp-action="Crear" method="post">
+            <input type="hidden" name="__panel" value="nueva-compra" />
+            <div class="panel-row">
+                <div class="panel-field">
+                    <label>PROVEEDOR</label>
+                    <select name="ProveedorId" id="compra-proveedor" onchange="compraCargarProductos()">
+                        <option value="">— Seleccione —</option>
+                        @foreach (var p in ViewBag.Proveedores as List<ENTIDADES.Proveedor> ?? new List<ENTIDADES.Proveedor>())
+                        {
+                            <option value="@p.Id">@p.RazonSocial</option>
+                        }
+                    </select>
+                </div>
+                <div class="panel-field"><label>N° FACTURA</label><input type="text" name="NumeroFactura" id="compra-factura" /></div>
+                <div class="panel-field">
+                    <label>FORMA DE PAGO</label>
+                    <select name="FormaPago">
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Transferencia">Transferencia</option>
+                        <option value="Cheque">Cheque</option>
+                    </select>
+                </div>
+            </div>
+            <div class="sub-title">AGREGAR PRODUCTO</div>
+            <div class="agregar-row">
+                <div class="panel-field">
+                    <label>PRODUCTO</label>
+                    <select id="compra-sel-producto"><option value="">— Seleccione proveedor primero —</option></select>
+                </div>
+                <div class="panel-field small"><label>CANTIDAD</label><input type="number" id="compra-cantidad" min="1" value="1" /></div>
+                <div class="panel-field small"><label>PRECIO UNIT.</label><input type="number" id="compra-precio" step="0.01" min="0" /></div>
+                <button type="button" class="btn-agregar" onclick="compraAgregarProducto()">+ AGREGAR</button>
+            </div>
+            <div class="data-table-wrap">
+                <table class="data-table">
+                    <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio Unit.</th><th>Subtotal</th><th></th></tr></thead>
+                    <tbody id="compra-tbody"><tr id="compra-empty-row"><td colspan="5" style="text-align:center;color:#aaa;padding:12px;">Seleccione proveedor...</td></tr></tbody>
+                </table>
+            </div>
+            <div class="total-row">TOTAL: $<span id="compra-total">0.00</span></div>
+            <div id="compra-hidden-inputs"></div>
+            <div style="display:flex;gap:8px;margin-top:10px;">
+                <button type="submit" class="btn-finalizar" id="btn-finalizar-compra" disabled>FINALIZAR COMPRA</button>
+                <button type="button" class="btn-cancelar" onclick="compraLimpiar()">LIMPIAR</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@* ══════════════════════════════════════════════
+   PANEL: COMPRAS TOTALES
+   ══════════════════════════════════════════════ *@
+<div class="panel" id="panel-compras-totales">
+    <div class="panel-header">
+        <img src="~/images/icon-compras-totales.png" alt="" onerror="this.style.display='none'" />
+        <h3>COMPRAS TOTALES</h3>
+    </div>
+    <div class="panel-body">
+        <div class="panel-form-col">
+            <div class="form-box" style="display:flex;flex-direction:column;gap:5px;">
+                <div class="form-section-title">ACCIONES</div>
+                <div style="display:flex;flex-direction:column;align-items:center;padding:8px 0 4px;">
+                    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+                        <circle cx="18" cy="11" r="8" fill="#d4a017" />
+                        <path d="M3 34c0-8 6.7-15 15-15s15 6.7 15 15" fill="#d4a017" />
+                    </svg>
+                    <span style="font-size:9.5px;font-weight:700;color:#5a3e00;margin-top:4px;text-align:center">ADMINISTRADOR</span>
+                </div>
+                <button class="btn-form-save" id="btn-ct-detalle" style="background:#2980b9;border-color:#1a5276;color:#fff" onclick="compraVerDetalle()" disabled>VER DETALLE</button>
+                <button class="btn-form-del" id="btn-ct-eliminar" onclick="compraEliminarSeleccionada()" disabled>ELIMINAR</button>
+                <button class="btn-form-save" style="background:#8e44ad;border-color:#6c3483;color:#fff" onclick="compraMostrarEstadisticas()">ESTADÍSTICAS</button>
+                <button class="btn-form-save" style="margin-top:6px" onclick="abrirModalInforme('compras')">GENERAR INFORME</button>
+            </div>
+        </div>
+        <div class="panel-table-col">
+            <div class="search-bar" style="flex-wrap:wrap;gap:5px;">
+                <label class="vt-lbl">DESDE</label>
+                <input type="date" id="ct-desde" class="vt-date" />
+                <label class="vt-lbl">HASTA</label>
+                <input type="date" id="ct-hasta" class="vt-date" />
+                <button class="btn-search" onclick="filtrarComprasFecha()">BUSCAR</button>
+                <button class="btn-clear" onclick="limpiarFiltroCompras()">LIMPIAR</button>
+            </div>
+            <div class="search-bar" style="margin-top:4px">
+                <label>BUSCAR:</label>
+                <input type="text" id="search-compras" oninput="filtrarCompras(this.value)" placeholder="Proveedor, factura..." />
+            </div>
+            <div class="data-table-wrap">
+                <table class="data-table" id="tabla-compras">
+                    <thead><tr><th>ID</th><th>Fecha</th><th>Proveedor</th><th>N° Factura</th><th>Forma Pago</th><th>Total</th></tr></thead>
+                    <tbody>
+                        @foreach (var c in ViewBag.Compras as List<ENTIDADES.Compra> ?? new List<ENTIDADES.Compra>())
+                        {
+                            <tr onclick="compraSeleccionarFila(this, @c.Id)"
+                                data-id="@c.Id" data-fecha="@c.FechaCompra.ToString("dd/MM/yyyy HH:mm")"
+                                data-proveedor="@c.Proveedor?.RazonSocial" data-factura="@c.NumeroFactura"
+                                data-formapago="@c.FormaPago" data-total="@c.Total.ToString("N2")"
+                                data-detalles="@Html.Raw(System.Text.Json.JsonSerializer.Serialize(c.Detalles.Select(d => new { nombre = d.ProductoNombre, cantidad = d.Cantidad, precio = d.PrecioUnitario.ToString("N2"), subtotal = d.Subtotal.ToString("N2") })).Replace("\"", "&quot;"))">
+                                <td>@c.Id</td>
+                                <td>@c.FechaCompra.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@c.Proveedor?.RazonSocial</td>
+                                <td>@c.NumeroFactura</td>
+                                <td>@c.FormaPago</td>
+                                <td>$@c.Total.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="total-row">TOTAL: $<span id="ct-total-label">@((ViewBag.Compras as List<ENTIDADES.Compra> ?? new List<ENTIDADES.Compra>()).Sum(c => c.Total).ToString("N2"))</span></div>
+            <form asp-controller="Compra" asp-action="Eliminar" method="post" id="form-ct-eliminar">
+                <input type="hidden" name="id" id="ct-eliminar-id" />
+                <input type="hidden" name="__panel" value="compras-totales" />
+            </form>
+        </div>
+    </div>
+</div>
+
+@* ══════════════════════════════════════════════
+   PANEL: PROMOCIONES
+   ══════════════════════════════════════════════ *@
+<div class="panel" id="panel-promociones">
+    <div class="panel-header">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style="flex-shrink:0">
+            <path d="M2 2h6l8 8-6 6-8-8V2z" stroke="#3a2500" stroke-width="1.3" fill="none" stroke-linejoin="round" />
+            <circle cx="6" cy="6" r="1.5" fill="#3a2500" />
+        </svg>
+        <h3>PROMOCIONES</h3>
+    </div>
+    <div class="panel-body">
+        <div class="panel-form-col">
+            <div class="form-box">
+                <div class="form-section-title">NUEVA PROMOCIÓN</div>
+                <div class="form-field">
+                    <label>PRODUCTO:</label>
+                    <select id="promo-producto" style="width:100%;border:1px solid #c8a000;border-radius:3px;padding:4px 6px;font-size:11px;background:#fffef0;">
+                        <option value="">— Seleccione —</option>
+                        @foreach (var p in ViewBag.TodosProductos as List<ENTIDADES.Producto> ?? new List<ENTIDADES.Producto>())
+                        {
+                            <option value="@p.Id" data-precio="@p.Precio">@p.Nombre ($@p.Precio.ToString("N2"))</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>TIPO DE DESCUENTO:</label>
+                    <select id="promo-tipo" style="width:100%;border:1px solid #c8a000;border-radius:3px;padding:4px 6px;font-size:11px;background:#fffef0;">
+                        <option value="Porcentaje">Porcentaje (%)</option>
+                        <option value="Monto">Monto ($)</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label id="promo-valor-lbl">VALOR (%):</label>
+                    <input type="number" id="promo-valor" step="0.01" min="0" />
+                </div>
+                <div class="form-field">
+                    <label>FECHA FIN:</label>
+                    <input type="datetime-local" id="promo-fecha-fin" />
+                </div>
+                <div class="form-field">
+                    <label>DESCRIPCIÓN:</label>
+                    <input type="text" id="promo-desc" placeholder="Ej: Promo de verano" />
+                </div>
+                <form asp-controller="Promocion" asp-action="Crear" method="post" id="form-promo-crear">
+                    <input type="hidden" name="ProductoId" id="h-promo-producto" />
+                    <input type="hidden" name="TipoDescuento" id="h-promo-tipo" />
+                    <input type="hidden" name="ValorDescuento" id="h-promo-valor" />
+                    <input type="hidden" name="FechaFin" id="h-promo-fecha-fin" />
+                    <input type="hidden" name="Descripcion" id="h-promo-desc" />
+                    <input type="hidden" name="__panel" value="promociones" />
+                </form>
+                <button type="button" class="btn-form-save" onclick="promoCrear()">CREAR PROMOCIÓN</button>
+                <div id="promo-preview" style="display:none;margin-top:8px;background:#eafaf1;border:1px solid #27ae60;border-radius:4px;padding:8px;font-size:11px;color:#1e8449;text-align:center;"></div>
+            </div>
+        </div>
+        <div class="panel-table-col">
+            <div class="search-bar" style="margin-bottom:6px;">
+                <label>FILTRAR:</label>
+                <select id="promo-filtro-estado" onchange="promoFiltrar()" style="border:1px solid #c8a000;border-radius:3px;padding:4px 6px;font-size:11px;background:#fffef0;">
+                    <option value="">Todas</option>
+                    <option value="vigente">Vigentes</option>
+                    <option value="inactiva">Inactivas/Vencidas</option>
+                </select>
+            </div>
+            <div class="data-table-wrap">
+                <table class="data-table" id="tabla-promociones">
+                    <thead>
+                        <tr><th>Producto</th><th>Descuento</th><th>Descripción</th><th>Fecha Fin</th><th>Estado</th><th>Acciones</th></tr>
+                    </thead>
+                    <tbody id="promo-tbody">
+                        <tr><td colspan="6" style="text-align:center;color:#aaa;padding:14px;">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ══════════════════════════════════════════════
+   PANEL: SEGURIDAD
+   ══════════════════════════════════════════════ *@
+<div class="panel" id="panel-seguridad">
+    <div class="panel-header">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style="flex-shrink:0">
+            <path d="M9 1L2 4v5c0 4 3.1 7.2 7 8 3.9-.8 7-4 7-8V4L9 1z" stroke="#3a2500" stroke-width="1.3" fill="none" />
+        </svg>
+        <h3>SEGURIDAD</h3>
+    </div>
+    <div class="panel-full">
+        <div class="seg-menu" id="seg-menu-principal">
+            <button class="seg-btn" onclick="mostrarSeccion('seg-grupos')">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                    <circle cx="9" cy="10" r="4" fill="#d4a017" />
+                    <circle cx="19" cy="10" r="4" fill="#d4a017" />
+                    <path d="M1 24c0-4 3.6-7 8-7" stroke="#d4a017" stroke-width="1.5" fill="none" />
+                    <path d="M19 17c4.4 0 8 3 8 7" stroke="#d4a017" stroke-width="1.5" fill="none" />
+                    <path d="M11 17h6" stroke="#d4a017" stroke-width="1.5" />
+                </svg>
+                <span>GESTIONAR GRUPOS</span>
+            </button>
+            <button class="seg-btn" onclick="mostrarSeccion('seg-usuarios')">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                    <circle cx="14" cy="9" r="5" fill="#d4a017" />
+                    <path d="M3 26c0-6 4.9-11 11-11s11 5 11 11" stroke="#d4a017" stroke-width="1.5" fill="none" />
+                </svg>
+                <span>GESTIONAR USUARIOS</span>
+            </button>
+            <button class="seg-btn" onclick="mostrarSeccion('seg-auditoria')">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                    <circle cx="14" cy="14" r="11" stroke="#d4a017" stroke-width="1.5" fill="none" />
+                    <line x1="14" y1="8" x2="14" y2="15" stroke="#d4a017" stroke-width="1.8" stroke-linecap="round" />
+                    <circle cx="14" cy="19" r="1.2" fill="#d4a017" />
+                </svg>
+                <span>AUDITORÍA DE SESIONES</span>
+            </button>
+            <button class="seg-btn" onclick="mostrarSeccion('seg-backup')">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                    <rect x="3" y="5" width="22" height="18" rx="2" stroke="#d4a017" stroke-width="1.5" fill="none" />
+                    <line x1="14" y1="10" x2="14" y2="18" stroke="#d4a017" stroke-width="1.5" stroke-linecap="round" />
+                    <path d="M10 15l4 4 4-4" stroke="#d4a017" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                    <line x1="9" y1="5" x2="9" y2="3" stroke="#d4a017" stroke-width="1.5" />
+                    <line x1="19" y1="5" x2="19" y2="3" stroke="#d4a017" stroke-width="1.5" />
+                </svg>
+                <span>BACKUP</span>
+            </button>
+        </div>
+
+        @* SUB: GRUPOS *@
+        <div class="seg-seccion" id="seg-grupos" style="display:none">
+            <div class="seg-form-header">
+                <div class="seg-form-titulo">FrescoMarket — GESTIONAR GRUPOS</div>
+                <button class="seg-btn-refrescar" onclick="sgGruposRefrescar()" title="Refrescar">↺</button>
+            </div>
+            <div class="seg-filtros-bar">
+                <span class="seg-filtros-lbl">FILTROS</span>
+                <label class="seg-flbl">NOMBRE:</label>
+                <input type="text" id="sg-grp-fnombre" class="seg-finput" oninput="sgFiltrarGrupos()" />
+                <label class="seg-flbl">ESTADO:</label>
+                <select id="sg-grp-festado" class="seg-fselect" onchange="sgFiltrarGrupos()">
+                    <option value="">Todos</option>
+                    @foreach (var e in ViewBag.EstadosGrupo as List<ENTIDADES.SEGURIDAD.EstadoGrupo> ?? new List<ENTIDADES.SEGURIDAD.EstadoGrupo>())
+                    {
+                        <option value="@e.Nombre">@e.Nombre</option>
+                    }
+                </select>
+                <button class="seg-btn-buscar" onclick="sgFiltrarGrupos()">BUSCAR</button>
+            </div>
+            <div class="data-table-wrap">
+                <table class="data-table seg-table" id="tabla-seg-grupos">
+                    <thead><tr><th style="width:40px">Id</th><th>NombreGrupo</th><th>Codigo</th><th>EstadoGrupoId</th><th>EstadoGrupo</th><th>Descripcion</th><th>Nombre_Alias</th></tr></thead>
+                    <tbody>
+                        @foreach (var g in ViewBag.Grupos as List<ENTIDADES.Grupo> ?? new List<ENTIDADES.Grupo>())
+                        {
+                            <tr onclick="sgSeleccionarGrupo(this, @g.Id)"
+                                data-id="@g.Id" data-nombre="@g.NombreGrupo" data-codigo="@g.Codigo"
+                                data-descripcion="@Html.Raw(g.Descripcion?.Replace("\"", "&quot;") ?? "")"
+                                data-estado="@(g.EstadoGrupo?.Nombre ?? "")">
+                                <td>@g.Id</td>
+                                <td>@g.NombreGrupo</td>
+                                <td>@g.Codigo</td>
+                                <td>@g.EstadoGrupoId</td>
+                                <td>@(g.EstadoGrupo?.Nombre ?? "—")</td>
+                                <td>@g.Descripcion</td>
+                                <td>@g.NombreGrupo</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="seg-botones-bar">
+                <button class="seg-btn-accion seg-btn-agregar" onclick="abrirModalAgregarGrupo()">AGREGAR</button>
+                <button class="seg-btn-accion seg-btn-eliminar2" onclick="sgEliminarGrupo()" id="btn-sg-grp-eliminar" disabled>ELIMINAR</button>
+                <button class="seg-btn-accion seg-btn-modificar" onclick="abrirModalModificarGrupo()" id="btn-sg-grp-modificar" disabled>MODIFICAR</button>
+                <button class="seg-back-float" onclick="ocultarSecciones()">✕</button>
+            </div>
+        </div>
+
+        @* SUB: USUARIOS *@
+        <div class="seg-seccion" id="seg-usuarios" style="display:none">
+            <div class="seg-form-header">
+                <div class="seg-form-titulo">FrescoMarket — GESTIONAR USUARIOS</div>
+                <button class="seg-btn-refrescar" onclick="sgUsuariosRefrescar()" title="Refrescar">↺</button>
+            </div>
+            <div class="seg-filtros-bar">
+                <span class="seg-filtros-lbl">FILTROS</span>
+                <label class="seg-flbl">NOMBRE:</label>
+                <input type="text" id="sg-usr-fnombre" class="seg-finput" oninput="sgFiltrarUsuarios()" />
+                <label class="seg-flbl">GRUPO:</label>
+                <select id="sg-usr-fgrupo" class="seg-fselect" onchange="sgFiltrarUsuarios()">
+                    <option value="">Todos</option>
+                    @foreach (var g in ViewBag.Grupos as List<ENTIDADES.Grupo> ?? new List<ENTIDADES.Grupo>())
+                    {
+                        <option value="@g.NombreGrupo">@g.NombreGrupo</option>
+                    }
+                </select>
+                <label class="seg-flbl">ESTADO:</label>
+                <select id="sg-usr-festado" class="seg-fselect" onchange="sgFiltrarUsuarios()">
+                    <option value="">Todos</option>
+                    @foreach (var e in ViewBag.EstadosUsuario as List<ENTIDADES.SEGURIDAD.EstadoUsuario> ?? new List<ENTIDADES.SEGURIDAD.EstadoUsuario>())
+                    {
+                        <option value="@e.Nombre">@e.Nombre</option>
+                    }
+                </select>
+                <button class="seg-btn-buscar" onclick="sgFiltrarUsuarios()">BUSCAR</button>
+            </div>
+            <div class="data-table-wrap">
+                <table class="data-table seg-table" id="tabla-seg-usuarios">
+                    <thead><tr><th>NombreUsuario</th><th>Rol</th><th>Estado</th><th>FechaCreacion</th><th>UltimoAcceso</th><th>IntentosIngreso</th><th>Email</th></tr></thead>
+                    <tbody>
+                        @foreach (var u in ViewBag.Usuarios as List<ENTIDADES.Usuario> ?? new List<ENTIDADES.Usuario>())
+                        {
+                            <tr onclick="sgSeleccionarUsuario(this, @u.Id)"
+                                data-id="@u.Id" data-nombre="@u.NombreUsuario" data-rol="@u.Rol"
+                                data-grupos="@(u.Grupos != null ? string.Join(",", u.Grupos.Select(g => g.NombreGrupo)) : "")">
+                                <td>@u.NombreUsuario</td>
+                                <td>@u.Rol</td>
+                                <td style="text-align:center">@(u.Estado ? "✓" : "✗")</td>
+                                <td>@u.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@(u.UltimoAcceso?.ToString("dd/MM/yyyy HH:mm") ?? "—")</td>
+                                <td style="text-align:center">@u.IntentosIngreso</td>
+                                <td>@(u.Email ?? "—")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="seg-botones-bar">
+                <button class="seg-btn-accion seg-btn-agregar" onclick="sgAgregarUsuario()">AGREGAR</button>
+                <button class="seg-btn-accion seg-btn-eliminar2" onclick="sgEliminarUsuario()" id="btn-sg-usr-eliminar" disabled>ELIMINAR</button>
+                <button class="seg-btn-accion seg-btn-modificar" onclick="sgModificarUsuario()" id="btn-sg-usr-modificar" disabled>MODIFICAR</button>
+                <button class="seg-btn-accion seg-btn-resetear" onclick="sgResetearUsuario()" id="btn-sg-usr-resetear" disabled>RESETEAR</button>
+                <form asp-controller="Usuario" asp-action="Eliminar" method="post" id="form-sg-usr-eliminar"><input type="hidden" name="id" id="sg-usr-del-id" /></form>
+                <form asp-controller="Usuario" asp-action="ResetearClave" method="post" id="form-sg-usr-reset"><input type="hidden" name="id" id="sg-usr-reset-id" /></form>
+                <button class="seg-back-float" onclick="ocultarSecciones()">✕</button>
+            </div>
+        </div>
+
+        @* SUB: AUDITORÍA *@
+        <div class="seg-seccion" id="seg-auditoria" style="display:none">
+            <div class="seg-form-header"><div class="seg-form-titulo">FrescoMarket — AUDITORÍA DE SESIONES</div></div>
+            <div class="auditoria-filtros">
+                <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
+                    <div class="panel-field" style="min-width:150px">
+                        <label>USUARIO</label>
+                        <select id="aud-usuario-sel" class="aud-select">
+                            <option value="">— Todos —</option>
+                            @foreach (var u in ViewBag.Usuarios as List<ENTIDADES.Usuario> ?? new List<ENTIDADES.Usuario>())
+                            {
+                                <option value="@u.Id">@u.NombreUsuario</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="panel-field" style="min-width:130px"><label>DESDE</label><input type="date" id="aud-desde" class="aud-input" /></div>
+                    <div class="panel-field" style="min-width:130px"><label>HASTA</label><input type="date" id="aud-hasta" class="aud-input" /></div>
+                    <button class="btn-search" style="padding:5px 14px" onclick="auditoriaFiltrar()">FILTRAR</button>
+                    <button class="btn-clear" style="padding:5px 10px" onclick="auditoriaLimpiar()">LIMPIAR</button>
+                </div>
+            </div>
+            @{
+                var sesiones = ViewBag.Sesiones as List<ENTIDADES.AuditoriaSesion> ?? new List<ENTIDADES.AuditoriaSesion>();
+            }
+            <div class="aud-resumen">
+                <div class="aud-stat"><span class="aud-stat-num" id="aud-total-count">@sesiones.Count</span><span class="aud-stat-lbl">Total sesiones</span></div>
+                <div class="aud-stat activa"><span class="aud-stat-num" id="aud-activa-count">@sesiones.Count(s => s.SesionActiva)</span><span class="aud-stat-lbl">Activas</span></div>
+                <div class="aud-stat cerrada"><span class="aud-stat-num" id="aud-cerrada-count">@sesiones.Count(s => !s.SesionActiva)</span><span class="aud-stat-lbl">Cerradas</span></div>
+            </div>
+            <div class="data-table-wrap">
+                <table class="data-table" id="tabla-auditoria">
+                    <thead><tr><th>Usuario</th><th>Ingreso</th><th>Salida</th><th>IP</th><th>Dispositivo</th><th>Tipo</th><th>Estado</th></tr></thead>
+                    <tbody id="aud-tbody">
+                        @foreach (var a in sesiones)
+                        {
+                            <tr>
+                                <td><strong>@a.NombreUsuario</strong></td>
+                                <td>@a.FechaIngreso.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@(a.FechaSalida?.ToString("dd/MM/yyyy HH:mm") ?? "—")</td>
+                                <td>@(a.DireccionIP == "::1" ? "127.0.0.1" : (a.DireccionIP?.StartsWith("::ffff:") == true ? a.DireccionIP.Substring(7) : a.DireccionIP ?? "—"))</td>
+                                <td>@a.Dispositivo</td>
+                                <td>@a.TipoSesion</td>
+                                <td><span class="aud-badge @(a.SesionActiva ? "activa" : "cerrada")">@(a.SesionActiva ? "● Activa" : "○ Cerrada")</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="seg-botones-bar"><button class="seg-back-float" onclick="ocultarSecciones()">✕</button></div>
+        </div>
+
+        @* SUB: BACKUP *@
+        <div class="seg-seccion" id="seg-backup" style="display:none">
+            <div class="seg-form-header"><div class="seg-form-titulo">FrescoMarket — BACKUP Y RESTAURACIÓN</div></div>
+            <div class="backup-grid">
+                <div class="backup-card">
+                    <div class="backup-card-titulo">CREAR BACKUP</div>
+                    <p style="font-size:11px;color:#7a5500;margin-bottom:10px;">Genera un archivo .bak de la base de datos.</p>
+                    <button class="btn-form-save" id="btn-crear-backup" onclick="backupCrear()">CREAR BACKUP AHORA</button>
+                    <div id="backup-status" style="margin-top:8px;font-size:11px;display:none;"></div>
+                </div>
+                <div class="backup-card">
+                    <div class="backup-card-titulo">RESTAURAR / DESCARGAR</div>
+                    <p style="font-size:11px;color:#7a5500;margin-bottom:6px;">Último backup: <span id="lbl-ultimo-backup">—</span></p>
+                    <div class="form-field" style="margin-bottom:8px;">
+                        <label>SELECCIONAR BACKUP:</label>
+                        <select id="sel-backups" class="aud-select"><option value="">Cargando...</option></select>
+                    </div>
+                    <div style="display:flex;gap:6px;">
+                        <button class="vt-btn vt-btn-detalle" style="flex:1;padding:5px 0" onclick="backupDescargar()">DESCARGAR</button>
+                        <button class="vt-btn vt-btn-eliminar" style="flex:1;padding:5px 0" onclick="backupRestaurar()">RESTAURAR BD</button>
+                    </div>
+                    <div id="restore-status" style="margin-top:8px;font-size:11px;display:none;"></div>
+                </div>
+            </div>
+            <div class="seg-botones-bar"><button class="seg-back-float" onclick="ocultarSecciones()">✕</button></div>
+        </div>
+
+
+        @* ── MODAL MODIFICAR USUARIO ── *@
+        <div id="modal-mod-usuario" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+            background:rgba(0,0,0,0.55);z-index:2000;align-items:center;justify-content:center;">
+            <div style="background:#fffbe6;border:2px solid #b8860b;border-radius:8px;width:420px;max-width:95vw;">
+                <div style="background:#d4a017;padding:8px 14px;border-radius:6px 6px 0 0;
+                    display:flex;align-items:center;justify-content:space-between;">
+                    <span style="font-size:13px;font-weight:700;color:#3a2500;">MODIFICAR USUARIO</span>
+                    <button onclick="cerrarModalModUsuario()"
+                            style="background:#8B6508;border:none;color:#f5d060;border-radius:50%;
+                        width:22px;height:22px;cursor:pointer;font-weight:700;">
+                        ✕
+                    </button>
+                </div>
+                <div style="padding:16px;">
+                    <div style="font-size:11px;color:#7a5500;margin-bottom:14px;background:#fff8dc;
+                        border:1px solid #e8c840;border-radius:4px;padding:8px;">
+                        Usuario: <strong id="mod-usr-nombre" style="color:#3a2500;"></strong>
+                    </div>
+                    <form asp-controller="Usuario" asp-action="Modificar" method="post">
+                        <input type="hidden" name="Id" id="mod-usr-id" />
+                        <input type="hidden" name="__panel" value="seguridad" />
+                        <div class="form-field">
+                            <label>EMAIL:</label>
+                            <input type="email" name="Email" id="mod-usr-email"
+                                   class="seg-finput" style="width:100%"
+                                   placeholder="correo@email.com" />
+                        </div>
+                        <div class="form-field">
+                            <label>ESTADO:</label>
+                            <select name="Estado" id="mod-usr-estado"
+                                    class="seg-fselect" style="width:100%">
+                                <option value="true">Activo ✓</option>
+                                <option value="false">Inactivo ✗</option>
+                            </select>
+                        </div>
+                        <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;">
+                            <button type="button" onclick="cerrarModalModUsuario()"
+                                    class="btn-cancelar" style="padding:5px 16px;font-size:11px;">
+                                CANCELAR
+                            </button>
+                            <button type="submit" class="btn-form-save"
+                                    style="width:auto;padding:5px 20px;">
+                                GUARDAR
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
+        @* ── LOG DE ACTIVIDAD — dentro del panel seguridad ── *@
+        @{
+            var logActividad = ViewBag.LogActividad as List<ENTIDADES.LogActividad> ?? new List<ENTIDADES.LogActividad>();
+        }
+        <div style="margin-top:18px;background:#fff;border:1.5px solid #e8c840;border-radius:8px;padding:14px;box-shadow:0 2px 8px rgba(184,134,11,0.1);">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;border-bottom:1px solid #f0d080;padding-bottom:8px;flex-wrap:wrap;">
+                <span style="font-size:16px;">📋</span>
+                <span style="font-size:11px;font-weight:800;color:#5a3e00;letter-spacing:0.5px;">LOG DE ACTIVIDAD DEL SISTEMA</span>
+                <span style="margin-left:auto;background:#b8860b;color:#fff;border-radius:12px;padding:2px 10px;font-size:10px;font-weight:700;">
+                    @logActividad.Count registros
+                </span>
+                <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                    <input type="text" id="log-buscar" placeholder="Buscar usuario o acción..."
+                           oninput="logFiltrar(this.value)"
+                           style="border:1px solid #c8a000;border-radius:3px;padding:4px 8px;font-size:11px;background:#fffef0;width:200px;" />
+                    <select id="log-filtro-accion" onchange="logFiltrar(document.getElementById('log-buscar').value)"
+                            style="border:1px solid #c8a000;border-radius:3px;padding:4px 6px;font-size:11px;background:#fffef0;">
+                        <option value="">Todas las acciones</option>
+                        <option value="venta">Ventas</option>
+                        <option value="compra">Compras</option>
+                        <option value="cliente">Clientes</option>
+                        <option value="producto">Productos</option>
+                        <option value="proveedor">Proveedores</option>
+                        <option value="catálogo">Catálogo</option>
+                        <option value="promoción">Promociones</option>
+                    </select>
+                    <button class="btn-clear" style="padding:4px 10px;font-size:10px;" onclick="logLimpiar()">LIMPIAR</button>
+                </div>
+            </div>
+            @if (!logActividad.Any())
+            {
+                <div style="text-align:center;color:#aaa;font-size:12px;padding:20px 0;">
+                    No hay actividad registrada aún.
+                </div>
+            }
+            else
+            {
+                <div style="max-height:340px;overflow-y:auto;">
+                    <table class="data-table" id="tabla-log">
+                        <thead>
+                            <tr>
+                                <th style="width:130px;">Fecha</th>
+                                <th style="width:120px;">Usuario</th>
+                                <th style="width:160px;">Acción</th>
+                                <th>Detalle</th>
+                                <th style="width:110px;">IP</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var log in logActividad)
+                            {
+                                var colorAccion = log.Accion.Contains("Eliminó") ? "#c0392b"
+                                    : log.Accion.Contains("Modificó") ? "#e67e22"
+                                    : log.Accion.Contains("Nueva") || log.Accion.Contains("Nuevo") ? "#27ae60"
+                                    : log.Accion.Contains("Aprobó") ? "#2980b9"
+                                    : log.Accion.Contains("Rechazó") ? "#8e44ad"
+                                    : "#b8860b";
+                                var iconoAccion = log.Accion.Contains("Eliminó") ? "🗑️"
+                                    : log.Accion.Contains("Modificó") ? "✏️"
+                                    : log.Accion.Contains("Venta") ? "💰"
+                                    : log.Accion.Contains("Compra") ? "📦"
+                                    : log.Accion.Contains("Cliente") ? "👤"
+                                    : log.Accion.Contains("Producto") ? "🏷️"
+                                    : log.Accion.Contains("Proveedor") ? "🏭"
+                                    : log.Accion.Contains("Catálogo") ? "📋"
+                                    : log.Accion.Contains("Promoción") ? "🎯"
+                                    : "📝";
+                                <tr data-usuario="@log.UsuarioNombre.ToLower()" data-accion="@log.Accion.ToLower()">
+                                    <td style="font-size:10px;color:#7a5500;">@log.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td style="font-weight:700;color:#3a2500;font-size:11px;">@log.UsuarioNombre</td>
+                                    <td>
+                                        <span style="display:inline-flex;align-items:center;gap:4px;background:@(colorAccion)18;
+                                            color:@colorAccion;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:700;">
+                                            @iconoAccion @log.Accion
+                                        </span>
+                                    </td>
+                                    <td style="font-size:11px;color:#5a3e00;">@(log.Detalle ?? "—")</td>
+                                    <td style="font-size:10px;color:#aaa;">
+                                        @(log.IP == "::1" ? "127.0.0.1" : (log.IP?.StartsWith("::ffff:") == true ? log.IP.Substring(7) : log.IP ?? "—"))
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+
+    </div>
+</div>
+
+@* ══════════════════════════════════════════════
+   MODALES
+   ══════════════════════════════════════════════ *@
+<div id="modal-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:1000;align-items:center;justify-content:center;">
+    <div id="modal-box" style="background:#fffbe6;border:2px solid #b8860b;border-radius:8px;width:560px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;">
+        <div style="background:#d4a017;padding:8px 14px;border-radius:6px 6px 0 0;display:flex;align-items:center;justify-content:space-between;">
+            <span id="modal-title" style="font-size:13px;font-weight:700;color:#3a2500;"></span>
+            <button onclick="cerrarModal()" style="background:#8B6508;border:none;color:#f5d060;border-radius:50%;width:22px;height:22px;cursor:pointer;font-weight:700;">✕</button>
+        </div>
+        <div id="modal-body" style="padding:14px;overflow-y:auto;flex:1;font-size:12px;color:#2a1800;white-space:pre-wrap;font-family:'Courier New',monospace;line-height:1.6;background:#fff;"></div>
+        <div style="padding:8px 14px;text-align:right;border-top:1px solid #e8c840;">
+            <button onclick="cerrarModal()" class="btn-cancelar" style="font-size:11px;padding:5px 16px;">CERRAR</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-registro-usuario" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:1500;align-items:center;justify-content:center;">
+    <div style="background:#fffbe6;border:2px solid #b8860b;border-radius:8px;width:480px;max-width:95vw;max-height:90vh;overflow-y:auto;">
+        <div style="background:#d4a017;padding:8px 14px;border-radius:6px 6px 0 0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;">
+            <span id="modal-reg-titulo" style="font-size:13px;font-weight:700;color:#3a2500;">REGISTRAR USUARIO</span>
+            <button onclick="cerrarModalRegistro()" style="background:#8B6508;border:none;color:#f5d060;border-radius:50%;width:22px;height:22px;cursor:pointer;font-weight:700;">✕</button>
+        </div>
+        <div style="padding:14px;">
+            <form asp-controller="Account" asp-action="Register" method="post" id="form-modal-registro">
+                <input type="hidden" name="TipoUsuario" id="reg-tipo-usuario" />
+                <div id="reg-campos-cliente">
+                    <div class="form-section-title" id="reg-titulo-datos">DATOS DEL CLIENTE</div>
+                    <div class="form-field"><label>DOCUMENTO (8 dígitos):</label><input type="text" name="Documento" class="seg-finput" style="width:100%" maxlength="8" /></div>
+                    <div class="form-field"><label>NOMBRE:</label><input type="text" name="Nombre" class="seg-finput" style="width:100%" /></div>
+                    <div class="form-field"><label>APELLIDO:</label><input type="text" name="Apellido" class="seg-finput" style="width:100%" /></div>
+                    <div class="form-field"><label>DIRECCIÓN:</label><input type="text" name="Direccion" class="seg-finput" style="width:100%" /></div>
+                </div>
+                <div id="reg-campos-proveedor" style="display:none">
+                    <div class="form-section-title">DATOS DEL PROVEEDOR</div>
+                    <div class="form-field"><label>CUIT (11 dígitos):</label><input type="text" name="Cuit" class="seg-finput" style="width:100%" maxlength="11" /></div>
+                    <div class="form-field"><label>RAZÓN SOCIAL:</label><input type="text" name="RazonSocial" class="seg-finput" style="width:100%" /></div>
+                    <div class="form-field"><label>TELÉFONO:</label><input type="text" name="Telefono" class="seg-finput" style="width:100%" /></div>
+                    <div class="form-field"><label>DIRECCIÓN:</label><input type="text" name="DireccionProveedor" class="seg-finput" style="width:100%" /></div>
+                </div>
+                <div class="form-section-title" style="margin-top:10px">DATOS DE ACCESO</div>
+                <div class="form-field"><label>NOMBRE DE USUARIO:</label><input type="text" name="NombreUsuario" class="seg-finput" style="width:100%" /></div>
+                <div class="form-field"><label>CONTRASEÑA:</label><input type="password" name="Contraseña" class="seg-finput" style="width:100%" /></div>
+                <div class="form-field"><label>EMAIL:</label><input type="email" name="Email" class="seg-finput" style="width:100%" /></div>
+                <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;">
+                    <button type="button" onclick="cerrarModalRegistro()" class="btn-cancelar" style="padding:5px 16px;font-size:11px;">CANCELAR</button>
+                    <button type="submit" class="btn-form-save" style="width:auto;padding:5px 20px;">REGISTRAR</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="modal-informe" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:1500;align-items:center;justify-content:center;">
+    <div style="background:#fffbe6;border:2px solid #b8860b;border-radius:8px;width:680px;max-width:96vw;">
+        <div style="background:#d4a017;padding:8px 14px;border-radius:6px 6px 0 0;display:flex;align-items:center;justify-content:space-between;">
+            <span id="modal-inf-titulo" style="font-size:13px;font-weight:700;color:#3a2500;">GENERAR INFORME DE VENTAS</span>
+            <button onclick="cerrarModalInforme()" style="background:#8B6508;border:none;color:#f5d060;border-radius:50%;width:22px;height:22px;cursor:pointer;font-weight:700;">✕</button>
+        </div>
+        <div style="padding:14px;">
+            <div style="display:flex;gap:10px;align-items:flex-end;margin-bottom:12px;flex-wrap:wrap;">
+                <div class="panel-field" style="min-width:130px">
+                    <label class="seg-flbl">DESDE</label>
+                    <input type="date" id="inf-desde" class="vt-date" style="width:100%" />
+                </div>
+                <div class="panel-field" style="min-width:130px">
+                    <label class="seg-flbl">HASTA</label>
+                    <input type="date" id="inf-hasta" class="vt-date" style="width:100%" />
+                </div>
+                <button class="btn-search" style="padding:6px 16px" onclick="informeActualizarGrafico()">VER GRÁFICO</button>
+                <button class="btn-form-save" style="width:auto;padding:6px 16px" onclick="informeDescargarPDF()">↓ DESCARGAR PDF</button>
+            </div>
+            <div style="background:#fff;border:1px solid #e8c840;border-radius:4px;padding:10px;min-height:220px;position:relative;">
+                <canvas id="inf-chart" height="200"></canvas>
+                <div id="inf-chart-empty" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#aaa;font-size:12px;text-align:center;display:none;">Sin datos para el período seleccionado</div>
+                <div id="inf-chart-loading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#b8860b;font-size:12px;text-align:center;">Seleccione las fechas y presione VER GRÁFICO</div>
+            </div>
+            <div id="inf-resumen" style="display:none;margin-top:10px;">
+                <div class="aud-resumen" style="margin-bottom:0">
+                    <div class="aud-stat"><span class="aud-stat-num" id="inf-total">$0</span><span class="aud-stat-lbl">Total</span></div>
+                    <div class="aud-stat activa"><span class="aud-stat-num" id="inf-cant">0</span><span class="aud-stat-lbl">Transacciones</span></div>
+                    <div class="aud-stat cerrada"><span class="aud-stat-num" id="inf-prom">$0</span><span class="aud-stat-lbl">Promedio</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-grupo-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fffbe6;border:2px solid #b8860b;border-radius:8px;width:420px;max-width:95vw;">
+        <div style="background:#d4a017;padding:8px 14px;border-radius:6px 6px 0 0;display:flex;align-items:center;justify-content:space-between;">
+            <span id="modal-grp-titulo" style="font-size:13px;font-weight:700;color:#3a2500;">AGREGAR GRUPO</span>
+            <button onclick="cerrarModalGrupo()" style="background:#8B6508;border:none;color:#f5d060;border-radius:50%;width:22px;height:22px;cursor:pointer;font-weight:700;">✕</button>
+        </div>
+        <div style="padding:14px;">
+            <form id="form-modal-grupo" method="post">
+                <input type="hidden" id="mg-id" name="Id" />
+                <div class="form-field"><label>NOMBRE DEL GRUPO:</label><input type="text" id="mg-nombre" name="NombreGrupo" class="seg-finput" style="width:100%" /></div>
+                <div class="form-field"><label>CÓDIGO:</label><input type="text" id="mg-codigo" name="Codigo" class="seg-finput" style="width:100%" /></div>
+                <div class="form-field"><label>DESCRIPCIÓN:</label><input type="text" id="mg-desc" name="Descripcion" class="seg-finput" style="width:100%" /></div>
+                <div class="form-field">
+                    <label>ESTADO:</label>
+                    <select id="mg-estado" name="EstadoGrupoId" class="seg-fselect" style="width:100%">
+                        @foreach (var e in ViewBag.EstadosGrupo as List<ENTIDADES.SEGURIDAD.EstadoGrupo> ?? new List<ENTIDADES.SEGURIDAD.EstadoGrupo>())
+                        {
+                            <option value="@e.Id">@e.Nombre</option>
+                        }
+                    </select>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
+                    <button type="button" onclick="cerrarModalGrupo()" class="btn-cancelar" style="padding:5px 16px;font-size:11px;">CANCELAR</button>
+                    <button type="button" onclick="guardarGrupo()" class="btn-form-save" style="width:auto;padding:5px 20px;">GUARDAR</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="modal-asignar-prod" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fffbe6;border:2px solid #b8860b;border-radius:8px;width:580px;max-width:96vw;max-height:90vh;display:flex;flex-direction:column;">
+        <div style="background:#d4a017;padding:8px 14px;border-radius:6px 6px 0 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+            <span id="modal-asig-titulo" style="font-size:13px;font-weight:700;color:#3a2500;">ASIGNAR PRODUCTOS</span>
+            <button onclick="cerrarModalAsignarProductos()" style="background:#8B6508;border:none;color:#f5d060;border-radius:50%;width:22px;height:22px;cursor:pointer;font-weight:700;">✕</button>
+        </div>
+        <div style="padding:10px 14px;border-bottom:1px solid #e8c840;flex-shrink:0;">
+            <div class="search-bar">
+                <label>BUSCAR:</label>
+                <input type="text" id="asig-buscar" placeholder="Nombre o código..." oninput="asigFiltrar(this.value)" style="width:200px;" />
+                <button class="btn-clear" onclick="document.getElementById('asig-buscar').value='';asigFiltrar('')">LIMPIAR</button>
+            </div>
+        </div>
+        <div style="overflow-y:auto;flex:1;padding:10px 14px;">
+            <div id="asig-loading" style="text-align:center;color:#b8860b;padding:20px;font-size:12px;">Cargando productos...</div>
+            <table class="data-table" id="tabla-asig-prod" style="display:none;">
+                <thead><tr><th style="width:40px;text-align:center;">✓</th><th>Nombre</th><th>Código</th><th>Precio</th><th>Stock</th></tr></thead>
+                <tbody id="asig-tbody"></tbody>
+            </table>
+        </div>
+        <div style="padding:10px 14px;border-top:1px solid #e8c840;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+            <span id="asig-contador" style="font-size:11px;color:#7a5500;font-weight:700;">0 productos seleccionados</span>
+            <div style="display:flex;gap:8px;">
+                <button class="btn-cancelar" style="font-size:11px;padding:5px 16px;" onclick="cerrarModalAsignarProductos()">CANCELAR</button>
+                <button class="btn-form-save" style="width:auto;padding:5px 20px;" onclick="guardarAsignacionProductos()">GUARDAR</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-catalogo-prov" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fffbe6;border:2px solid #b8860b;border-radius:8px;width:640px;max-width:96vw;max-height:90vh;display:flex;flex-direction:column;">
+        <div style="background:#d4a017;padding:8px 14px;border-radius:6px 6px 0 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+            <span id="modal-cat-titulo" style="font-size:13px;font-weight:700;color:#3a2500;">CATÁLOGO DEL PROVEEDOR</span>
+            <button onclick="cerrarModalCatalogo()" style="background:#8B6508;border:none;color:#f5d060;border-radius:50%;width:22px;height:22px;cursor:pointer;font-weight:700;">✕</button>
+        </div>
+        <div style="overflow-y:auto;flex:1;padding:10px 14px;">
+            <div id="cat-loading" style="text-align:center;color:#b8860b;padding:20px;font-size:12px;">Cargando catálogo...</div>
+            <table class="data-table" id="tabla-cat-admin" style="display:none;">
+                <thead><tr><th>Nombre</th><th>Precio</th><th>Descripción</th><th>Fecha</th><th>Estado</th><th style="width:160px;">Acciones</th></tr></thead>
+                <tbody id="cat-admin-tbody"></tbody>
+            </table>
+            <div id="cat-empty" style="display:none;text-align:center;color:#aaa;padding:20px;font-size:12px;">Este proveedor no tiene productos en su catálogo.</div>
+        </div>
+        <div style="padding:10px 14px;border-top:1px solid #e8c840;text-align:right;flex-shrink:0;">
+            <button class="btn-cancelar" style="font-size:11px;padding:5px 16px;" onclick="cerrarModalCatalogo()">CERRAR</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-aprobar-cat" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:3000;align-items:center;justify-content:center;">
+    <div style="background:#fffbe6;border:2px solid #b8860b;border-radius:8px;width:460px;max-width:95vw;">
+        <div style="background:#d4a017;padding:8px 14px;border-radius:6px 6px 0 0;display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:13px;font-weight:700;color:#3a2500;">APROBAR PRODUCTO</span>
+            <button onclick="cerrarModalAprobar()" style="background:#8B6508;border:none;color:#f5d060;border-radius:50%;width:22px;height:22px;cursor:pointer;font-weight:700;">✕</button>
+        </div>
+        <div style="padding:14px;">
+            <div style="background:#fff8dc;border:1px solid #e8c840;border-radius:4px;padding:10px;margin-bottom:12px;">
+                <div style="font-size:11px;color:#7a5500;font-weight:700;">PRODUCTO</div>
+                <div id="apr-nombre-prod" style="font-size:14px;font-weight:700;color:#3a2500;margin-top:2px;"></div>
+                <div style="font-size:11px;color:#7a5500;margin-top:4px;">Proveedor: <span id="apr-proveedor"></span></div>
+                <div style="font-size:11px;color:#7a5500;">Precio sugerido: $<span id="apr-precio-sug"></span></div>
+            </div>
+            <div class="form-field">
+                <label>CANTIDAD A COMPRAR:</label>
+                <input type="number" id="apr-cantidad" min="1" value="1" style="width:100%;border:1px solid #c8a000;border-radius:3px;padding:6px 8px;font-size:12px;background:#fffef0;" />
+            </div>
+            <div class="form-field">
+                <label>PRECIO UNITARIO DE COMPRA:</label>
+                <input type="number" id="apr-precio" step="0.01" min="0" style="width:100%;border:1px solid #c8a000;border-radius:3px;padding:6px 8px;font-size:12px;background:#fffef0;" />
+            </div>
+            <div class="form-field">
+                <label>N° FACTURA:</label>
+                <input type="text" id="apr-factura" style="width:100%;border:1px solid #c8a000;border-radius:3px;padding:6px 8px;font-size:12px;background:#fffef0;" />
+            </div>
+            <div style="background:#eafaf1;border:1px solid #27ae60;border-radius:4px;padding:8px;margin-top:8px;font-size:11px;color:#1e8449;">
+                ✓ Al confirmar: se creará el producto, se asignará al proveedor y se registrará la compra automáticamente.
+            </div>
+            <form id="form-aprobar-cat" asp-controller="Catalogo" asp-action="AprobarConCompra" method="post">
+                <input type="hidden" name="id" id="apr-id" />
+                <input type="hidden" name="cantidad" id="apr-cantidad-h" />
+                <input type="hidden" name="precioUnitario" id="apr-precio-h" />
+                <input type="hidden" name="numeroFactura" id="apr-factura-h" />
+                <input type="hidden" name="__panel" value="proveedores" />
+            </form>
+            <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;">
+                <button class="btn-cancelar" style="font-size:11px;padding:5px 16px;" onclick="cerrarModalAprobar()">CANCELAR</button>
+                <button class="btn-form-save" style="width:auto;padding:5px 20px;" onclick="confirmarAprobacion()">CONFIRMAR Y REGISTRAR COMPRA</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        // ── Restaurar panel activo tras POST ──
+        (function () {
+        var panel = '@(TempData["ActivePanel"] ?? "inicio")';
+        if (panel && panel !== 'inicio') {
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        var el = document.getElementById('panel-' + panel);
+        if (el) el.classList.add('active');
+        document.querySelectorAll('.nav-btn').forEach(function (btn) {
+        if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes("'" + panel + "'"))
+        btn.classList.add('active');
+        });
+        }
+        })();
+
+        var _infTipo = 'ventas';
+        var _infChart = null;
+
+        // ── ASIGNAR USUARIO DEFAULT — CLIENTE ──
+        function clienteAsignarUsuario() {
+        if (!clienteSeleccionadoId) return;
+        var row = document.querySelector('#tabla-clientes tbody tr.selected');
+        var tieneUsuario = row?.dataset.tieneUsuario === 'si';
+
+        if (tieneUsuario) {
+        alert('Este cliente ya tiene un usuario asignado.');
+        return;
+        }
+
+        var doc = row?.dataset.doc || '';
+        if (!confirm('¿Asignar usuario automático a este cliente?\n\n' +
+        'Se creará el usuario: cliente_' + doc + '\n' +
+        'Con contraseña temporal: Cliente_' + doc + '!\n\n' +
+        'El cliente deberá cambiarla al ingresar.')) return;
+
+        document.getElementById('h-cli-asignar-id').value = clienteSeleccionadoId;
+        document.getElementById('form-cli-asignar-usuario').submit();
+        }
+
+        // ── ASIGNAR USUARIO DEFAULT — PROVEEDOR ──
+        function proveedorAsignarUsuario() {
+        if (!proveedorSeleccionadoId) return;
+        var row = document.querySelector('#tabla-proveedores tbody tr.selected');
+        var tieneUsuario = row?.dataset.tieneUsuario === 'si';
+
+        if (tieneUsuario) {
+        alert('Este proveedor ya tiene un usuario asignado.');
+        return;
+        }
+
+        var cuit = document.getElementById('prov-cuit')?.value || '';
+        if (!confirm('¿Asignar usuario automático a este proveedor?\n\n' +
+        'Se creará el usuario: proveedor_' + cuit + '\n' +
+        'Con contraseña temporal: Proveedor_' + cuit + '!\n\n' +
+        'El proveedor deberá cambiarla al ingresar.')) return;
+
+        document.getElementById('h-prov-asignar-id').value = proveedorSeleccionadoId;
+        document.getElementById('form-prov-asignar-usuario').submit();
+        }
+
+        // ── Modal registro usuario ──
+        function abrirModalRegistroUsuario(tipo) {
+        document.getElementById('reg-tipo-usuario').value = tipo;
+        document.getElementById('reg-campos-cliente').style.display = tipo === 'Cliente' ? '' : 'none';
+        document.getElementById('reg-campos-proveedor').style.display = tipo === 'Proveedor' ? '' : 'none';
+        document.getElementById('reg-titulo-datos').textContent = 'DATOS DEL ' + tipo.toUpperCase();
+        document.getElementById('modal-reg-titulo').textContent = 'REGISTRAR ' + tipo.toUpperCase();
+        document.getElementById('modal-registro-usuario').style.display = 'flex';
+        }
+        function cerrarModalRegistro() { document.getElementById('modal-registro-usuario').style.display = 'none'; }
+
+        // ── Modal informe ──
+        function abrirModalInforme(tipo) {
+        _infTipo = tipo;
+        document.getElementById('modal-inf-titulo').textContent = 'GENERAR INFORME DE ' + (tipo === 'ventas' ? 'VENTAS' : 'COMPRAS');
+        var hoy = new Date(), hace30 = new Date();
+        hace30.setDate(hoy.getDate() - 30);
+        function fmt(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+        document.getElementById('inf-desde').value = fmt(hace30);
+        document.getElementById('inf-hasta').value = fmt(hoy);
+        document.getElementById('inf-resumen').style.display = 'none';
+        document.getElementById('inf-chart-loading').style.display = 'block';
+        document.getElementById('inf-chart-empty').style.display = 'none';
+        if (_infChart) { _infChart.destroy(); _infChart = null; }
+        document.getElementById('modal-informe').style.display = 'flex';
+        setTimeout(informeActualizarGrafico, 100);
+        }
+        function cerrarModalInforme() {
+        document.getElementById('modal-informe').style.display = 'none';
+        if (_infChart) { _infChart.destroy(); _infChart = null; }
+        }
+        function informeActualizarGrafico() {
+        var desde = document.getElementById('inf-desde').value;
+        var hasta = document.getElementById('inf-hasta').value;
+        if (!desde || !hasta) { alert('Seleccione las fechas.'); return; }
+        document.getElementById('inf-chart-loading').textContent = 'Cargando datos...';
+        document.getElementById('inf-chart-loading').style.display = 'block';
+        document.getElementById('inf-chart-empty').style.display = 'none';
+        var tableId = _infTipo === 'ventas' ? 'tabla-ventas' : 'tabla-compras';
+        var rows = Array.from(document.querySelectorAll('#' + tableId + ' tbody tr'));
+        var diasMap = {}, totalGen = 0, cant = 0;
+        rows.forEach(function (r) {
+        if (!r.dataset.fecha) return;
+        var partes = r.dataset.fecha.split(' ')[0].split('/');
+        var fecha = partes[2] + '-' + partes[1] + '-' + partes[0];
+        if (fecha < desde || fecha > hasta) return;
+        var total = parseFloat(r.dataset.total.replace(',', '')) || 0;
+        var label = partes[0] + '/' + partes[1];
+        if (!diasMap[label]) diasMap[label] = 0;
+        diasMap[label] += total;
+        totalGen += total; cant++;
+        });
+        document.getElementById('inf-chart-loading').style.display = 'none';
+        var labels = Object.keys(diasMap).sort();
+        var values = labels.map(k => diasMap[k]);
+        if (!labels.length) {
+        document.getElementById('inf-chart-empty').style.display = 'block';
+        document.getElementById('inf-resumen').style.display = 'none';
+        return;
+        }
+        if (_infChart) { _infChart.destroy(); _infChart = null; }
+        var ctx = document.getElementById('inf-chart').getContext('2d');
+        _infChart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: labels, datasets: [{ label: _infTipo === 'ventas' ? 'Ventas Diarias ($)' : 'Compras Diarias ($)', data: values, backgroundColor: 'rgba(70,130,180,0.75)', borderColor: 'rgba(70,130,180,1)', borderWidth: 1, borderRadius: 3 }] },
+        options: { responsive: true, plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (ctx) { return '$' + ctx.parsed.y.toFixed(2); } } } }, scales: { y: { beginAtZero: true, ticks: { callback: function (v) { return '$' + v.toLocaleString(); } } } } }
+        });
+        document.getElementById('inf-total').textContent = '$' + totalGen.toFixed(2);
+        document.getElementById('inf-cant').textContent = cant;
+        document.getElementById('inf-prom').textContent = cant > 0 ? '$' + (totalGen / cant).toFixed(2) : '$0';
+        document.getElementById('inf-resumen').style.display = 'block';
+        }
+        function informeDescargarPDF() {
+        var desde = document.getElementById('inf-desde').value;
+        var hasta = document.getElementById('inf-hasta').value;
+        if (!desde || !hasta) { alert('Seleccione las fechas primero.'); return; }
+        var url = (_infTipo === 'ventas' ? '/Reporte/GenerarReporteVentas' : '/Reporte/GenerarReporteCompras') + '?desde=' + desde + '&hasta=' + hasta;
+        window.open(url, '_blank');
+        }
+
+        // ── MODAL APROBAR CATÁLOGO ──
+        function abrirModalAprobar(catalogoId) {
+        fetch('/Catalogo/ObtenerInfoAprobacion?id=' + catalogoId)
+        .then(r => r.json())
+        .then(function (data) {
+        if (!data.ok) { alert('Error al obtener info del producto.'); return; }
+        document.getElementById('apr-id').value = data.id;
+        document.getElementById('apr-nombre-prod').textContent = data.nombreProducto;
+        document.getElementById('apr-proveedor').textContent = data.proveedorNombre;
+        document.getElementById('apr-precio-sug').textContent = parseFloat(data.precio).toFixed(2);
+        document.getElementById('apr-precio').value = parseFloat(data.precio).toFixed(2);
+        document.getElementById('apr-cantidad').value = 1;
+        document.getElementById('apr-factura').value = '';
+        document.getElementById('modal-aprobar-cat').style.display = 'flex';
+        })
+        .catch(function () { alert('Error de conexión.'); });
+        }
+        function cerrarModalAprobar() { document.getElementById('modal-aprobar-cat').style.display = 'none'; }
+        function confirmarAprobacion() {
+        var cantidad = document.getElementById('apr-cantidad').value;
+        var precio = document.getElementById('apr-precio').value;
+        var factura = document.getElementById('apr-factura').value.trim();
+        if (!cantidad || parseInt(cantidad) <= 0) { alert('Ingrese una cantidad válida.'); return; }
+        if (!precio || parseFloat(precio) <= 0) { alert('Ingrese un precio válido.'); return; }
+        if (!factura) { alert('Ingrese el número de factura.'); return; }
+        document.getElementById('apr-cantidad-h').value = cantidad;
+        document.getElementById('apr-precio-h').value = precio;
+        document.getElementById('apr-factura-h').value = factura;
+        document.getElementById('form-aprobar-cat').submit();
+        }
+        document.getElementById('modal-aprobar-cat').addEventListener('click', function (e) {
+        if (e.target === this) cerrarModalAprobar();
+        });
+
+        // ── ASIGNAR PRODUCTOS A PROVEEDOR ──
+        var asigProductosData = [];
+        function abrirModalAsignarProductos() {
+        if (!proveedorSeleccionadoId) { alert('Seleccione un proveedor.'); return; }
+        var row = document.querySelector('#tabla-proveedores tbody tr.selected');
+        var razon = row ? row.dataset.razon : 'Proveedor';
+        document.getElementById('modal-asig-titulo').textContent = 'ASIGNAR PRODUCTOS — ' + razon;
+        document.getElementById('asig-loading').style.display = 'block';
+        document.getElementById('tabla-asig-prod').style.display = 'none';
+        document.getElementById('asig-buscar').value = '';
+        document.getElementById('modal-asignar-prod').style.display = 'flex';
+        fetch('/Proveedor/ObtenerProductosProveedor?proveedorId=' + proveedorSeleccionadoId)
+        .then(r => r.json())
+        .then(function (data) {
+        asigProductosData = data;
+        document.getElementById('asig-loading').style.display = 'none';
+        document.getElementById('tabla-asig-prod').style.display = '';
+        asigRenderTabla(data);
+        })
+        .catch(function () { document.getElementById('asig-loading').textContent = 'Error al cargar productos.'; });
+        }
+        function cerrarModalAsignarProductos() { document.getElementById('modal-asignar-prod').style.display = 'none'; }
+        function asigRenderTabla(productos) {
+        var tbody = document.getElementById('asig-tbody');
+        tbody.innerHTML = '';
+        if (!productos.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#aaa;padding:14px;">No hay productos disponibles.</td></tr>';
+        asigActualizarContador(); return;
+        }
+        productos.forEach(function (p) {
+        var tr = document.createElement('tr');
+        tr.dataset.id = p.id;
+        tr.dataset.nombre = p.nombre.toLowerCase();
+        tr.dataset.codigo = p.codigo.toLowerCase();
+        tr.innerHTML = '<td style="text-align:center;"><input type="checkbox" id="chk-prod-' + p.id + '" ' + (p.asignado ? 'checked' : '') + ' onchange="asigActualizarContador()" style="width:16px;height:16px;cursor:pointer;" /></td>' +
+        '<td><label for="chk-prod-' + p.id + '" style="cursor:pointer;">' + p.nombre + '</label></td>' +
+        '<td>' + p.codigo + '</td><td>$' + parseFloat(p.precio).toFixed(2) + '</td><td>' + p.stock + '</td>';
+        tbody.appendChild(tr);
+        });
+        asigActualizarContador();
+        }
+        function asigFiltrar(val) {
+        var q = val.toLowerCase().trim();
+        document.querySelectorAll('#asig-tbody tr').forEach(function (row) {
+        if (!row.dataset.nombre) return;
+        row.style.display = (!q || row.dataset.nombre.includes(q) || row.dataset.codigo.includes(q)) ? '' : 'none';
+        });
+        }
+        function asigActualizarContador() {
+        var total = document.querySelectorAll('#asig-tbody input[type="checkbox"]:checked').length;
+        document.getElementById('asig-contador').textContent = total + ' producto(s) seleccionado(s)';
+        }
+        function guardarAsignacionProductos() {
+        var ids = Array.from(document.querySelectorAll('#asig-tbody input[type="checkbox"]:checked'))
+        .map(function (chk) { return parseInt(chk.id.replace('chk-prod-', '')); });
+        fetch('/Proveedor/GuardarProductosProveedor?proveedorId=' + proveedorSeleccionadoId, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ids)
+        })
+        .then(r => r.json())
+        .then(function (data) {
+        if (data.ok) {
+        cerrarModalAsignarProductos();
+        var t = document.createElement('div');
+        t.className = 'toast-msg toast-success';
+        t.textContent = '✓ ' + data.mensaje;
+        document.body.appendChild(t);
+        setTimeout(function () { t.classList.add('toast-hide'); setTimeout(function () { t.remove(); }, 400); }, 3000);
+        } else { alert('Error: ' + data.error); }
+        })
+        .catch(function () { alert('Error de conexión al guardar.'); });
+        }
+        document.getElementById('modal-asignar-prod').addEventListener('click', function (e) {
+        if (e.target === this) cerrarModalAsignarProductos();
+        });
+
+        // ── CATÁLOGO DEL PROVEEDOR (ADMIN) ──
+        function abrirModalCatalogo() {
+        if (!proveedorSeleccionadoId) { alert('Seleccione un proveedor.'); return; }
+        var row = document.querySelector('#tabla-proveedores tbody tr.selected');
+        var razon = row ? row.dataset.razon : 'Proveedor';
+        document.getElementById('modal-cat-titulo').textContent = 'CATÁLOGO — ' + razon;
+        document.getElementById('cat-loading').style.display = 'block';
+        document.getElementById('tabla-cat-admin').style.display = 'none';
+        document.getElementById('cat-empty').style.display = 'none';
+        document.getElementById('modal-catalogo-prov').style.display = 'flex';
+        fetch('/Catalogo/ObtenerCatalogoProveedor?proveedorId=' + proveedorSeleccionadoId)
+        .then(r => r.json())
+        .then(function (data) {
+        document.getElementById('cat-loading').style.display = 'none';
+        if (!data.length) { document.getElementById('cat-empty').style.display = 'block'; return; }
+        document.getElementById('tabla-cat-admin').style.display = '';
+        var tbody = document.getElementById('cat-admin-tbody');
+        tbody.innerHTML = '';
+        data.forEach(function (item) {
+        var colorEstado = item.estado === 'Aprobado' ? '#27ae60' : item.estado === 'Rechazado' ? '#c0392b' : '#e67e22';
+        var acciones = item.estado === 'Pendiente'
+        ? '<button onclick="abrirModalAprobar(' + item.id + ')" class="btn-form-update" style="padding:3px 10px;font-size:10px;margin-right:4px;">APROBAR</button>' +
+        '<form action="/Catalogo/Rechazar" method="post" style="display:inline"><input type="hidden" name="id" value="' + item.id + '"/><input type="hidden" name="__panel" value="proveedores"/><button type="submit" class="btn-form-del" style="padding:3px 10px;font-size:10px;">RECHAZAR</button></form>'
+        : '<span style="font-size:10px;color:' + colorEstado + ';font-weight:700;">' + item.estado + '</span>';
+        tbody.innerHTML += '<tr><td>' + item.nombreProducto + '</td><td>$' + parseFloat(item.precio).toFixed(2) + '</td><td>' + (item.descripcion || '—') + '</td><td>' + item.fecha + '</td><td><span style="font-weight:700;color:' + colorEstado + ';">' + item.estado + '</span></td><td>' + acciones + '</td></tr>';
+        });
+        })
+        .catch(function () { document.getElementById('cat-loading').textContent = 'Error al cargar el catálogo.'; });
+        }
+        function cerrarModalCatalogo() { document.getElementById('modal-catalogo-prov').style.display = 'none'; }
+        document.getElementById('modal-catalogo-prov').addEventListener('click', function (e) {
+        if (e.target === this) cerrarModalCatalogo();
+        });
+
+        // ── PROMOCIONES ──
+        document.getElementById('promo-tipo').addEventListener('change', function () {
+        document.getElementById('promo-valor-lbl').textContent = this.value === 'Porcentaje' ? 'VALOR (%):' : 'VALOR ($):';
+        promoActualizarPreview();
+        });
+        document.getElementById('promo-valor').addEventListener('input', promoActualizarPreview);
+        document.getElementById('promo-producto').addEventListener('change', promoActualizarPreview);
+
+        function promoActualizarPreview() {
+        var productoSel = document.getElementById('promo-producto');
+        var tipo = document.getElementById('promo-tipo').value;
+        var valor = parseFloat(document.getElementById('promo-valor').value) || 0;
+        var preview = document.getElementById('promo-preview');
+        if (!productoSel.value || valor <= 0) { preview.style.display = 'none'; return; }
+        var opt = productoSel.options[productoSel.selectedIndex];
+        var precio = parseFloat(opt.dataset.precio) || 0;
+        if (precio <= 0) { preview.style.display = 'none'; return; }
+        var precioFinal = tipo === 'Porcentaje' ? precio - (precio * valor / 100) : precio - valor;
+        if (precioFinal < 0) precioFinal = 0;
+        preview.style.display = 'block';
+        preview.innerHTML = '💰 Precio original: $' + precio.toFixed(2) + '<br>🏷️ Precio con descuento: <strong>$' + precioFinal.toFixed(2) + '</strong>';
+        }
+
+        function promoCrear() {
+        var productoId = document.getElementById('promo-producto').value;
+        var tipo = document.getElementById('promo-tipo').value;
+        var valor = document.getElementById('promo-valor').value;
+        var fechaFin = document.getElementById('promo-fecha-fin').value;
+        if (!productoId) { alert('Seleccione un producto.'); return; }
+        if (!valor || parseFloat(valor) <= 0) { alert('Ingrese un valor de descuento válido.'); return; }
+        if (tipo === 'Porcentaje' && parseFloat(valor) > 100) { alert('El porcentaje no puede ser mayor a 100.'); return; }
+        if (!fechaFin) { alert('Ingrese la fecha de fin de la promoción.'); return; }
+        if (new Date(fechaFin) <= new Date()) { alert('La fecha de fin debe ser futura.'); return; }
+        document.getElementById('h-promo-producto').value = productoId;
+        document.getElementById('h-promo-tipo').value = tipo;
+        document.getElementById('h-promo-valor').value = valor;
+        document.getElementById('h-promo-fecha-fin').value = fechaFin;
+        document.getElementById('h-promo-desc').value = document.getElementById('promo-desc').value;
+        document.getElementById('form-promo-crear').submit();
+        }
+
+        function promoFiltrar() {
+        var filtro = document.getElementById('promo-filtro-estado').value;
+        document.querySelectorAll('#promo-tbody tr').forEach(function (row) {
+        if (!row.dataset.vigente) return;
+        if (!filtro) { row.style.display = ''; return; }
+        if (filtro === 'vigente') row.style.display = row.dataset.vigente === 'true' ? '' : 'none';
+        if (filtro === 'inactiva') row.style.display = row.dataset.vigente === 'false' ? '' : 'none';
+        });
+        }
+
+        function promoCargarTabla() {
+        fetch('/Promocion/ObtenerTodas')
+        .then(r => r.json())
+        .then(function (data) {
+        var tbody = document.getElementById('promo-tbody');
+        tbody.innerHTML = '';
+        if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#aaa;padding:14px;">No hay promociones registradas.</td></tr>';
+        return;
+        }
+        data.forEach(function (p) {
+        var colorEstado = p.vigente ? '#27ae60' : '#c0392b';
+        var estadoTexto = p.vigente ? '● Vigente' : (p.activa ? '○ Vencida' : '○ Inactiva');
+        var descuento = p.tipoDescuento === 'Porcentaje' ? p.valorDescuento + '%' : '$' + parseFloat(p.valorDescuento).toFixed(2);
+        var acciones = p.vigente
+        ? '<form action="/Promocion/Desactivar" method="post" style="display:inline"><input type="hidden" name="id" value="' + p.id + '"/><input type="hidden" name="__panel" value="promociones"/><button type="submit" class="btn-form-del" style="padding:2px 8px;font-size:10px;margin-right:3px;">DESACTIVAR</button></form>' +
+        '<form action="/Promocion/Eliminar" method="post" style="display:inline"><input type="hidden" name="id" value="' + p.id + '"/><input type="hidden" name="__panel" value="promociones"/><button type="submit" class="btn-form-del" style="padding:2px 8px;font-size:10px;">ELIMINAR</button></form>'
+        : '<form action="/Promocion/Eliminar" method="post" style="display:inline"><input type="hidden" name="id" value="' + p.id + '"/><input type="hidden" name="__panel" value="promociones"/><button type="submit" class="btn-form-del" style="padding:2px 8px;font-size:10px;">ELIMINAR</button></form>';
+        var tr = document.createElement('tr');
+        tr.dataset.vigente = p.vigente ? 'true' : 'false';
+        tr.innerHTML = '<td>' + p.productoNombre + '</td><td style="font-weight:700;color:#2980b9;">' + descuento + '</td><td>' + (p.descripcion || '—') + '</td><td>' + p.fechaFin + '</td><td><span style="font-weight:700;color:' + colorEstado + ';">' + estadoTexto + '</span></td><td>' + acciones + '</td>';
+        tbody.appendChild(tr);
+        });
+        })
+        .catch(function () {
+        document.getElementById('promo-tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#c0392b;padding:14px;">Error al cargar promociones.</td></tr>';
+        });
+        }
+
+        var _originalShowPanel = window.showPanel;
+        window.showPanel = function (name, btn) {
+        _originalShowPanel(name, btn);
+        if (name === 'promociones') promoCargarTabla();
+        };
+
+        // ── LOG DE ACTIVIDAD ──
+        function logFiltrar(busqueda) {
+        var q = (busqueda || '').toLowerCase();
+        var filtroAccion = document.getElementById('log-filtro-accion').value.toLowerCase();
+        document.querySelectorAll('#tabla-log tbody tr').forEach(function (row) {
+        var usuario = (row.dataset.usuario || '');
+        var accion = (row.dataset.accion || '');
+        var matchBusqueda = !q || usuario.includes(q) || accion.includes(q);
+        var matchAccion = !filtroAccion || accion.includes(filtroAccion);
+        row.style.display = (matchBusqueda && matchAccion) ? '' : 'none';
+        });
+        }
+        function logLimpiar() {
+        document.getElementById('log-buscar').value = '';
+        document.getElementById('log-filtro-accion').value = '';
+        logFiltrar('');
+        }
+
+        // ── RELOJ EN VIVO ──
+        function dashActualizarReloj() {
+        var ahora = new Date();
+        var hora = String(ahora.getHours()).padStart(2, '0') + ':' + String(ahora.getMinutes()).padStart(2, '0') + ':' + String(ahora.getSeconds()).padStart(2, '0');
+        var dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        var meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        var fecha = dias[ahora.getDay()] + ', ' + ahora.getDate() + ' de ' + meses[ahora.getMonth()] + ' de ' + ahora.getFullYear();
+        var elHora = document.getElementById('dash-hora');
+        var elFecha = document.getElementById('dash-fecha');
+        if (elHora) elHora.textContent = hora;
+        if (elFecha) elFecha.textContent = fecha;
+        }
+        dashActualizarReloj();
+        setInterval(dashActualizarReloj, 1000);
+    </script>
+}

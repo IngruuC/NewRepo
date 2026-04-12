@@ -1,0 +1,133 @@
+﻿@{
+    ViewData["Title"] = "Reportes";
+    Layout = "~/Views/Shared/_LayoutProveedor.cshtml";
+    var compras = ViewBag.Compras as List<ENTIDADES.Compra> ?? new List<ENTIDADES.Compra>();
+}
+
+<div class="panel-header">
+    <h3>REPORTES — @ViewBag.ProveedorNombre</h3>
+</div>
+<div class="panel-body-content">
+
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+        <div class="form-field" style="margin:0;">
+            <label>DESDE:</label>
+            <input type="date" id="rep-desde" style="width:145px;" />
+        </div>
+        <div class="form-field" style="margin:0;">
+            <label>HASTA:</label>
+            <input type="date" id="rep-hasta" style="width:145px;" />
+        </div>
+        <button class="btn-dorado" style="align-self:flex-end;padding:6px 16px;" onclick="actualizarReportes()">ACTUALIZAR</button>
+        <button class="btn-azul" style="align-self:flex-end;padding:6px 16px;" onclick="exportarPDFReporte()">GENERAR PDF</button>
+    </div>
+
+    <div style="margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:700;color:#5a3e00;margin-bottom:6px;">Productos Más Comprados</div>
+        <div class="prov-chart-wrap">
+            <canvas id="chart-productos" height="180"></canvas>
+            <div id="chart-prod-empty" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#aaa;font-size:12px;display:none;">Sin datos para el período</div>
+        </div>
+    </div>
+
+    <div>
+        <div style="font-size:12px;font-weight:700;color:#5a3e00;margin-bottom:6px;">Compras por Forma de Pago</div>
+        <div class="prov-chart-wrap" style="min-height:180px;">
+            <canvas id="chart-formas-pago" height="160"></canvas>
+            <div id="chart-fp-empty" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#aaa;font-size:12px;display:none;">Sin datos</div>
+        </div>
+    </div>
+</div>
+
+<script id="compras-data" type="application/json">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+            compras.Select(c => new
+            {
+                    fecha = c.FechaCompra.ToString("yyyy-MM-dd"),
+                    total = c.Total,
+                    formaPago = c.FormaPago,
+                    detalles = c.Detalles.Select(d => new { nombre = d.ProductoNombre, cantidad = d.Cantidad, subtotal = d.Subtotal })
+            })
+    ))
+</script>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        var todasCompras = JSON.parse(document.getElementById('compras-data').textContent);
+        var chartProductos = null, chartFormasPago = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+        var hoy = new Date(), hace3m = new Date();
+        hace3m.setMonth(hoy.getMonth() - 3);
+        function fmt(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+        document.getElementById('rep-desde').value = fmt(hace3m);
+        document.getElementById('rep-hasta').value = fmt(hoy);
+        actualizarReportes();
+        });
+
+        function actualizarReportes() {
+        var desde = document.getElementById('rep-desde').value;
+        var hasta = document.getElementById('rep-hasta').value;
+
+        var filtradas = todasCompras.filter(function(c) {
+        return (!desde || c.fecha >= desde) && (!hasta || c.fecha <= hasta);
+        });
+
+        var prodMap = {};
+        filtradas.forEach(function(c) {
+        c.detalles.forEach(function(d) {
+        if (!prodMap[d.nombre]) prodMap[d.nombre] = 0;
+        prodMap[d.nombre] += d.cantidad;
+        });
+        });
+        var prodLabels = Object.keys(prodMap).sort(function(a,b){ return prodMap[b]-prodMap[a]; }).slice(0,10);
+        var prodValues = prodLabels.map(function(k){ return prodMap[k]; });
+
+        if (chartProductos) { chartProductos.destroy(); chartProductos = null; }
+        var emptyProd = document.getElementById('chart-prod-empty');
+        if (!prodLabels.length) {
+        emptyProd.style.display = 'block';
+        } else {
+        emptyProd.style.display = 'none';
+        chartProductos = new Chart(document.getElementById('chart-productos').getContext('2d'), {
+        type: 'bar',
+        data: {
+        labels: prodLabels,
+        datasets: [{ label: 'Cantidad Comprada', data: prodValues, backgroundColor: 'rgba(70,130,180,0.75)', borderColor: 'rgba(70,130,180,1)', borderWidth: 1, borderRadius: 3 }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+        });
+        }
+
+        var fpMap = {};
+        filtradas.forEach(function(c) {
+        if (!fpMap[c.formaPago]) fpMap[c.formaPago] = 0;
+        fpMap[c.formaPago] += parseFloat(c.total);
+        });
+        var fpLabels = Object.keys(fpMap);
+        var fpValues = fpLabels.map(function(k){ return fpMap[k]; });
+
+        if (chartFormasPago) { chartFormasPago.destroy(); chartFormasPago = null; }
+        var emptyFP = document.getElementById('chart-fp-empty');
+        if (!fpLabels.length) {
+        emptyFP.style.display = 'block';
+        } else {
+        emptyFP.style.display = 'none';
+        chartFormasPago = new Chart(document.getElementById('chart-formas-pago').getContext('2d'), {
+        type: 'doughnut',
+        data: { labels: fpLabels, datasets: [{ data: fpValues, backgroundColor: ['rgba(65,105,225,0.8)','rgba(46,139,87,0.8)','rgba(178,34,34,0.8)','rgba(218,165,32,0.8)'], borderWidth: 1 }] },
+        options: { responsive: true, plugins: { legend: { position: 'right' }, tooltip: { callbacks: { label: function(ctx){ return ctx.label + ': $' + ctx.parsed.toFixed(2); } } } } }
+        });
+        }
+        }
+
+        function exportarPDFReporte() {
+        var desde = document.getElementById('rep-desde').value;
+        var hasta = document.getElementById('rep-hasta').value;
+        var url = '/Reporte/GenerarReporteCompras';
+        if (desde || hasta) url += '?desde=' + (desde||'') + '&hasta=' + (hasta||'');
+        window.open(url, '_blank');
+        }
+    </script>
+}

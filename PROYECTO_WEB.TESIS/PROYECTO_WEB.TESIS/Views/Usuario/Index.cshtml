@@ -1,0 +1,39 @@
+﻿@model List<ENTIDADES.Usuario>
+@{
+    ViewData["Title"] = "Usuarios";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>👤 Usuarios</h2>
+    <a asp-action="Crear" class="btn btn-success">+ Nuevo Usuario</a>
+</div>
+<table class="table table-striped shadow-sm">
+    <thead class="table-dark">
+        <tr><th>Usuario</th><th>Email</th><th>Rol</th><th>Estado</th><th>Grupos</th><th>Acciones</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var u in Model)
+        {
+            <tr>
+                <td>@u.NombreUsuario</td>
+                <td>@u.Email</td>
+                <td>@u.Rol</td>
+                <td><span class="badge @(u.Estado ? "bg-success" : "bg-danger")">@(u.Estado ? "Activo" : "Inactivo")</span></td>
+                <td>@(u.Grupos != null ? string.Join(", ", u.Grupos.Select(g => g.NombreGrupo)) : "-")</td>
+                <td>
+                    <a asp-action="Editar" asp-route-id="@u.Id" class="btn btn-sm btn-warning">Editar</a>
+                    <form asp-action="ResetearClave" method="post" style="display:inline">
+                        <input type="hidden" name="id" value="@u.Id" />
+                        <button type="submit" class="btn btn-sm btn-info" onclick="return confirm('¿Resetear clave?')">Reset Clave</button>
+                    </form>
+                    @if (u.NombreUsuario != "admin")
+                    {
+                        <form asp-action="Eliminar" method="post" style="display:inline" onsubmit="return confirm('¿Eliminar usuario?')">
+                            <input type="hidden" name="id" value="@u.Id" />
+                            <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

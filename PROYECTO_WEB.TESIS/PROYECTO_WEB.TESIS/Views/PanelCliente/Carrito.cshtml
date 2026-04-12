@@ -1,0 +1,191 @@
+﻿@{
+    ViewData["Title"] = "Carrito de Compras";
+    Layout = "~/Views/Shared/_LayoutCliente.cshtml";
+    var productos = ViewBag.Productos as List<ENTIDADES.Producto> ?? new List<ENTIDADES.Producto>();
+}
+
+<script id="productos-stock-data" type="application/json">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+            productos.Select(p => new { id = p.Id, stock = p.Stock, precio = p.Precio })
+    ))
+</script>
+
+<div class="panel-header">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <path d="M2 2h2l2.5 9h8l2-6H6" stroke="#3a2500" stroke-width="1.3" fill="none" stroke-linecap="round" />
+        <circle cx="8" cy="15" r="1.5" fill="#3a2500" />
+        <circle cx="13" cy="15" r="1.5" fill="#3a2500" />
+    </svg>
+    <h3>CARRITO DE COMPRAS</h3>
+</div>
+<div class="panel-body-content">
+    <div class="carrito-container">
+        <div class="data-table-wrap">
+            <table class="data-table" id="tabla-carrito">
+                <thead>
+                    <tr><th>Producto</th><th>Precio Unit.</th><th>Cantidad</th><th>Subtotal</th><th>Eliminar</th></tr>
+                </thead>
+                <tbody id="carrito-tbody">
+                    <tr id="carrito-empty">
+                        <td colspan="5" class="carrito-empty">El carrito está vacío. ¡Agregá productos desde Inicio!</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="carrito-acciones">
+            <div class="carrito-total">TOTAL: $<span id="carrito-total-val">0.00</span></div>
+            <button class="btn-gris" onclick="vaciarCarrito()">VACIAR CARRITO</button>
+            <a href="@Url.Action("Index", "PanelCliente")" class="btn-gris">SEGUIR COMPRANDO</a>
+            <button class="btn-dorado" id="btn-finalizar" onclick="abrirModalPago()" disabled>FINALIZAR COMPRA</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-pago" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-title">SELECCIONAR FORMA DE PAGO</div>
+        <div class="form-field">
+            <label>FORMA DE PAGO:</label>
+            <select id="sel-forma-pago" style="width:100%;border:1px solid #c8a000;border-radius:3px;padding:5px 8px;font-size:12px;background:#fffef0;">
+                <option value="Efectivo">Efectivo (15% descuento)</option>
+                <option value="Tarjeta de Crédito">Tarjeta de Crédito (10% recargo)</option>
+                <option value="Tarjeta de Débito">Tarjeta de Débito</option>
+            </select>
+        </div>
+        <div id="pago-precio-info" style="font-size:11px;color:#7a5500;margin-top:6px;"></div>
+        <div class="modal-btns">
+            <button class="btn-gris" onclick="cerrarModalPago()">CANCELAR</button>
+            <button class="btn-dorado" onclick="finalizarCompra()">ACEPTAR</button>
+        </div>
+    </div>
+</div>
+
+<form method="post" asp-controller="PanelCliente" asp-action="FinalizarCompra" id="form-compra" style="display:none;">
+    <input type="hidden" name="FormaPago" id="h-forma-pago" />
+    <div id="h-detalles-container"></div>
+</form>
+
+@section Scripts {
+    <script>
+        var stockData = JSON.parse(document.getElementById('productos-stock-data').textContent);
+
+        document.addEventListener('DOMContentLoaded', function() {
+            actualizarBadgeCarrito();
+            renderCarrito();
+            document.getElementById('sel-forma-pago').addEventListener('change', actualizarInfoPago);
+        });
+
+        function actualizarBadgeCarrito() {
+            var carrito = JSON.parse(sessionStorage.getItem('carrito') || '[]');
+            var total = carrito.reduce(function(s,i){ return s + i.cantidad; }, 0);
+            var badge = document.querySelector('.carrito-badge');
+            if (total > 0) {
+                if (!badge) { badge = document.createElement('span'); badge.className = 'carrito-badge'; document.querySelector('.carrito-icon-wrap').appendChild(badge); }
+                badge.textContent = total; badge.style.display = 'flex';
+            } else if (badge) { badge.style.display = 'none'; }
+        }
+
+        function renderCarrito() {
+            var carrito = JSON.parse(sessionStorage.getItem('carrito') || '[]');
+            var tbody = document.getElementById('carrito-tbody');
+            var total = 0;
+
+            tbody.innerHTML = '';
+
+            if (!carrito.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="carrito-empty">El carrito está vacío. ¡Agregá productos desde Inicio!</td></tr>';
+                document.getElementById('carrito-total-val').textContent = '0.00';
+                document.getElementById('btn-finalizar').disabled = true;
+                return;
+            }
+
+            carrito.forEach(function(item, idx) {
+                var subtotal = parseFloat(item.precio) * item.cantidad;
+                total += subtotal;
+                var tr = document.createElement('tr');
+                tr.innerHTML =
+                    '<td>' + item.nombre + '</td>' +
+                    '<td>$' + parseFloat(item.precio).toFixed(2) + '</td>' +
+                    '<td style="display:flex;align-items:center;gap:4px;">' +
+                        '<button onclick="cambiarCantidad(' + idx + ',-1)" style="background:#d4a017;border:1px solid #8B6508;border-radius:3px;width:22px;height:22px;cursor:pointer;font-weight:700;">−</button>' +
+                        '<span style="min-width:24px;text-align:center;">' + item.cantidad + '</span>' +
+                        '<button onclick="cambiarCantidad(' + idx + ',1)" style="background:#d4a017;border:1px solid #8B6508;border-radius:3px;width:22px;height:22px;cursor:pointer;font-weight:700;">+</button>' +
+                    '</td>' +
+                    '<td>$' + subtotal.toFixed(2) + '</td>' +
+                    '<td><button class="btn-rojo" style="padding:2px 10px;" onclick="eliminarItem(' + idx + ')">X</button></td>';
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('carrito-total-val').textContent = total.toFixed(2);
+            document.getElementById('btn-finalizar').disabled = false;
+            actualizarBadgeCarrito();
+        }
+
+        function cambiarCantidad(idx, delta) {
+            var carrito = JSON.parse(sessionStorage.getItem('carrito') || '[]');
+            var item = carrito[idx];
+            var nueva = item.cantidad + delta;
+            var sd = stockData.find(function(s){ return s.id === item.id; });
+            var maxStock = sd ? sd.stock : item.stock;
+            if (nueva < 1) { eliminarItem(idx); return; }
+            if (nueva > maxStock) { alert('Stock insuficiente. Disponible: ' + maxStock); return; }
+            item.cantidad = nueva;
+            sessionStorage.setItem('carrito', JSON.stringify(carrito));
+            renderCarrito();
+        }
+
+        function eliminarItem(idx) {
+            var carrito = JSON.parse(sessionStorage.getItem('carrito') || '[]');
+            carrito.splice(idx, 1);
+            sessionStorage.setItem('carrito', JSON.stringify(carrito));
+            renderCarrito();
+        }
+
+        function vaciarCarrito() {
+            if (!confirm('¿Vaciar el carrito?')) return;
+            sessionStorage.setItem('carrito', '[]');
+            renderCarrito();
+        }
+
+        function abrirModalPago() {
+            actualizarInfoPago();
+            document.getElementById('modal-pago').classList.add('visible');
+        }
+        function cerrarModalPago() {
+            document.getElementById('modal-pago').classList.remove('visible');
+        }
+        function actualizarInfoPago() {
+            var fp = document.getElementById('sel-forma-pago').value;
+            var carrito = JSON.parse(sessionStorage.getItem('carrito') || '[]');
+            var base = carrito.reduce(function(s,i){ return s + parseFloat(i.precio)*i.cantidad; }, 0);
+            var final = fp === 'Efectivo' ? base * 0.85 : fp === 'Tarjeta de Crédito' ? base * 1.10 : base;
+            var info = document.getElementById('pago-precio-info');
+            if (fp === 'Efectivo') info.textContent = 'Con descuento del 15%: $' + final.toFixed(2);
+            else if (fp === 'Tarjeta de Crédito') info.textContent = 'Con recargo del 10%: $' + final.toFixed(2);
+            else info.textContent = 'Total: $' + final.toFixed(2);
+        }
+
+        function finalizarCompra() {
+            var fp = document.getElementById('sel-forma-pago').value;
+            var carrito = JSON.parse(sessionStorage.getItem('carrito') || '[]');
+            if (!carrito.length) { alert('El carrito está vacío.'); return; }
+            document.getElementById('h-forma-pago').value = fp;
+            var cont = document.getElementById('h-detalles-container');
+            cont.innerHTML = '';
+            carrito.forEach(function(item, i) {
+                cont.innerHTML +=
+                    '<input type="hidden" name="Detalles[' + i + '].ProductoId" value="' + item.id + '"/>' +
+                    '<input type="hidden" name="Detalles[' + i + '].ProductoNombre" value="' + item.nombre + '"/>' +
+                    '<input type="hidden" name="Detalles[' + i + '].Cantidad" value="' + item.cantidad + '"/>' +
+                    '<input type="hidden" name="Detalles[' + i + '].PrecioUnitario" value="' + item.precio + '"/>';
+            });
+            sessionStorage.setItem('carrito', '[]');
+            document.getElementById('form-compra').submit();
+        }
+
+        document.getElementById('modal-pago').addEventListener('click', function(e) {
+            if (e.target === this) cerrarModalPago();
+        });
+    </script>
+}

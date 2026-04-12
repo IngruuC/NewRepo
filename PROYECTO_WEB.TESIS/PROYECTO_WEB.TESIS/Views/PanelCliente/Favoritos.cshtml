@@ -1,0 +1,203 @@
+﻿@{
+    ViewData["Title"] = "Mis Favoritos";
+    Layout = "~/Views/Shared/_LayoutCliente.cshtml";
+    var todosProductos = ViewBag.Productos as List<ENTIDADES.Producto> ?? new List<ENTIDADES.Producto>();
+}
+
+<div class="panel-header">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <path d="M9 15l-6-5a4 4 0 0 1 5.5-5.8L9 4.5l.5-.3A4 4 0 0 1 15 10z" fill="#3a2500" />
+    </svg>
+    <h3>MIS FAVORITOS</h3>
+</div>
+<div class="panel-body-content">
+
+    <div class="data-table-wrap">
+        <table class="data-table" id="tabla-favoritos">
+            <thead>
+                <tr><th>ID</th><th>Nombre</th><th>Precio</th><th>Stock</th><th>Acciones</th></tr>
+            </thead>
+            <tbody id="fav-tbody">
+                <tr>
+                    <td colspan="5" style="text-align:center;padding:20px;color:#aaa;">
+                        No tienes productos favoritos. ¡Agrega desde la pantalla de inicio!
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px;margin-top:10px;">
+        <div class="carrito-total">TOTAL DE FAVORITOS: <span id="fav-count">0</span></div>
+        <button class="btn-dorado" onclick="abrirModalAgregarFav()">AGREGAR FAVORITO</button>
+    </div>
+</div>
+
+@* Modal buscar producto *@
+<div id="modal-agregar-fav" class="modal-overlay">
+    <div class="modal-box" style="width:520px;">
+        <div class="modal-title">AGREGAR A FAVORITOS</div>
+        <div style="margin-bottom:8px;">
+            <input type="text" id="fav-buscar" placeholder="Buscar producto..."
+                   oninput="filtrarModalFav(this.value)"
+                   style="width:100%;border:1px solid #c8a000;border-radius:3px;padding:5px 8px;font-size:12px;background:#fffef0;" />
+        </div>
+        <div style="max-height:280px;overflow-y:auto;border:1px solid #e8c840;border-radius:4px;">
+            <table class="data-table" id="tabla-modal-fav">
+                <thead><tr><th>Nombre</th><th>Precio</th><th>Stock</th><th></th></tr></thead>
+                <tbody id="modal-fav-tbody"></tbody>
+            </table>
+        </div>
+        <div class="modal-btns">
+            <button class="btn-gris" onclick="cerrarModalFav()">CERRAR</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Productos pasados desde el servidor de forma segura
+        var todosProductos = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                    todosProductos.Select(p => new { id = p.Id, nombre = p.Nombre, precio = p.Precio, stock = p.Stock })
+            ));
+
+        document.addEventListener('DOMContentLoaded', function () {
+            actualizarBadgeCarrito();
+            renderFavoritos();
+        });
+
+        function actualizarBadgeCarrito() {
+            var carrito = JSON.parse(sessionStorage.getItem('carrito') || '[]');
+            var total = carrito.reduce(function (s, i) { return s + i.cantidad; }, 0);
+            var badge = document.querySelector('.carrito-badge');
+            if (total > 0) {
+                if (!badge) {
+                    badge = document.createElement('span');
+                    badge.className = 'carrito-badge';
+                    document.querySelector('.carrito-icon-wrap').appendChild(badge);
+                }
+                badge.textContent = total;
+                badge.style.display = 'flex';
+            }
+        }
+
+        function renderFavoritos() {
+            var favs = JSON.parse(sessionStorage.getItem('favoritos') || '[]');
+            var tbody = document.getElementById('fav-tbody');
+            document.getElementById('fav-count').textContent = favs.length;
+
+            if (!favs.length) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:#aaa;">No tienes productos favoritos. ¡Agrega desde la pantalla de inicio!</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            favs.forEach(function (f, i) {
+                var tr = document.createElement('tr');
+                tr.innerHTML =
+                    '<td>' + (i + 1) + '</td>' +
+                    '<td>' + f.nombre + '</td>' +
+                    '<td>$' + parseFloat(f.precio).toFixed(2) + '</td>' +
+                    '<td>' + f.stock + '</td>' +
+                    '<td style="display:flex;gap:4px;">' +
+                        '<button class="btn-agregar-carrito" style="padding:3px 8px;" onclick="agregarFavAlCarrito(' + i + ')">🛒 Agregar</button>' +
+                        '<button class="btn-rojo" style="padding:3px 8px;font-size:10px;" onclick="eliminarFavorito(' + i + ')">ELIMINAR</button>' +
+                    '</td>';
+                tbody.appendChild(tr);
+            });
+        }
+
+        function eliminarFavorito(idx) {
+            if (!confirm('¿Eliminar este producto de favoritos?')) return;
+            var favs = JSON.parse(sessionStorage.getItem('favoritos') || '[]');
+            favs.splice(idx, 1);
+            sessionStorage.setItem('favoritos', JSON.stringify(favs));
+            renderFavoritos();
+        }
+
+        function agregarFavAlCarrito(idx) {
+            var favs = JSON.parse(sessionStorage.getItem('favoritos') || '[]');
+            var f = favs[idx];
+            if (!f) return;
+            var carrito = JSON.parse(sessionStorage.getItem('carrito') || '[]');
+            var ex = carrito.find(function (i) { return i.id === f.id; });
+            if (ex) {
+                if (ex.cantidad + 1 > f.stock) { alert('Stock insuficiente.'); return; }
+                ex.cantidad++;
+            } else {
+                carrito.push({ id: f.id, nombre: f.nombre, precio: f.precio, cantidad: 1, stock: f.stock });
+            }
+            sessionStorage.setItem('carrito', JSON.stringify(carrito));
+            actualizarBadgeCarrito();
+            mostrarToast('✓ ' + f.nombre + ' agregado al carrito', 'toast-success');
+        }
+
+        function abrirModalAgregarFav() {
+            document.getElementById('fav-buscar').value = '';
+            renderModalFav('');
+            document.getElementById('modal-agregar-fav').classList.add('visible');
+        }
+        function cerrarModalFav() {
+            document.getElementById('modal-agregar-fav').classList.remove('visible');
+        }
+        function filtrarModalFav(v) { renderModalFav(v); }
+
+        function renderModalFav(filtro) {
+            var q = (filtro || '').toLowerCase().trim();
+            var favs = JSON.parse(sessionStorage.getItem('favoritos') || '[]');
+            var tbody = document.getElementById('modal-fav-tbody');
+            tbody.innerHTML = '';
+
+            var lista = q
+                ? todosProductos.filter(function (p) { return p.nombre.toLowerCase().includes(q); })
+                : todosProductos;
+
+            if (!lista.length) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:14px;color:#aaa;">Sin resultados</td></tr>';
+                return;
+            }
+
+            lista.forEach(function (p) {
+                var yaEsFav = favs.some(function (f) { return f.id === p.id; });
+                var tr = document.createElement('tr');
+                tr.innerHTML =
+                    '<td>' + p.nombre + '</td>' +
+                    '<td>$' + parseFloat(p.precio).toFixed(2) + '</td>' +
+                    '<td>' + p.stock + '</td>' +
+                    '<td>' + (yaEsFav
+                        ? '<span style="color:#27ae60;font-weight:700;font-size:10px;">YA EN FAV.</span>'
+                        : '<button class="btn-dorado" style="padding:3px 8px;font-size:10px;" onclick="agregarFavDesdeModal(' + p.id + ',\'' + p.nombre.replace(/'/g, "\\'") + '\',' + p.precio + ',' + p.stock + ')">♥ AGREGAR</button>') +
+                    '</td>';
+                tbody.appendChild(tr);
+            });
+        }
+
+        function agregarFavDesdeModal(id, nombre, precio, stock) {
+            var favs = JSON.parse(sessionStorage.getItem('favoritos') || '[]');
+            if (favs.some(function (f) { return f.id === id; })) {
+                mostrarToast('Ya está en favoritos', 'toast-error');
+                return;
+            }
+            favs.push({ id: id, nombre: nombre, precio: precio, stock: stock });
+            sessionStorage.setItem('favoritos', JSON.stringify(favs));
+            renderFavoritos();
+            renderModalFav(document.getElementById('fav-buscar').value);
+            mostrarToast('♥ ' + nombre + ' agregado a favoritos', 'toast-success');
+        }
+
+        document.getElementById('modal-agregar-fav').addEventListener('click', function (e) {
+            if (e.target === this) cerrarModalFav();
+        });
+
+        function mostrarToast(msg, cls) {
+            var t = document.createElement('div');
+            t.className = 'toast-msg ' + cls;
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(function () {
+                t.classList.add('toast-hide');
+                setTimeout(function () { t.remove(); }, 400);
+            }, 2500);
+        }
+    </script>
+}

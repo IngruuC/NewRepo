@@ -1,0 +1,77 @@
+﻿@{
+    ViewData["Title"] = "Mis Productos";
+    Layout = "~/Views/Shared/_LayoutProveedor.cshtml";
+    var productos = ViewBag.Productos as List<ENTIDADES.Producto> ?? new List<ENTIDADES.Producto>();
+}
+
+<div class="panel-header">
+    <h3>MIS PRODUCTOS</h3>
+</div>
+<div class="panel-body-content">
+
+    <div class="search-bar">
+        <label>BUSCAR:</label>
+        <input type="text" id="search-mis-prod" style="width:220px;" placeholder="Nombre o código..."
+               oninput="filtrarMisProductos(this.value)" />
+        <button class="btn-search" onclick="filtrarMisProductos(document.getElementById('search-mis-prod').value)">BUSCAR</button>
+        <button class="btn-clear" onclick="document.getElementById('search-mis-prod').value='';filtrarMisProductos('')">LIMPIAR</button>
+    </div>
+
+    <div style="font-size:11px;font-weight:700;color:#7a5500;margin-bottom:6px;">
+        <span id="prod-count">@productos.Count</span> producto(s) en lista
+    </div>
+
+    <div class="data-table-wrap">
+        <table class="data-table" id="tabla-mis-prod">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Código</th>
+                    <th>Nombre</th>
+                    <th>Perecedero</th>
+                    <th>Vencimiento</th>
+                    <th>Precio</th>
+                    <th>Stock</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!productos.Any())
+                {
+                    <tr><td colspan="7" style="text-align:center;padding:20px;color:#aaa;">No tiene productos asignados.</td></tr>
+                }
+                @foreach (var p in productos)
+                {
+                    <tr data-nombre="@p.Nombre.ToLower()" data-codigo="@p.CodigoBarra.ToLower()">
+                        <td>@p.Id</td>
+                        <td>@p.CodigoBarra</td>
+                        <td>@p.Nombre</td>
+                        <td style="text-align:center;">@(p.EsPerecedero ? "✓" : "")</td>
+                        <td>@(p.FechaVencimiento?.ToString("dd/MM/yyyy") ?? "—")</td>
+                        <td>$@p.Precio.ToString("N2")</td>
+                        <td>@p.Stock</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+        <button class="btn-dorado" onclick="window.location.reload()">ACTUALIZAR LISTA</button>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function filtrarMisProductos(v) {
+            var q = v.toLowerCase().trim();
+            var count = 0;
+            document.querySelectorAll('#tabla-mis-prod tbody tr').forEach(function(r) {
+                if (!r.dataset.nombre) return;
+                var ok = !q || r.dataset.nombre.includes(q) || r.dataset.codigo.includes(q);
+                r.style.display = ok ? '' : 'none';
+                if (ok) count++;
+            });
+            document.getElementById('prod-count').textContent = count;
+        }
+    </script>
+}

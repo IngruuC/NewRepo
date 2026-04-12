@@ -1,0 +1,309 @@
+﻿@* Views/Shared/_LayoutProveedor.cshtml *@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Fresco Market</title>
+    <link rel="stylesheet" href="~/css/admin-panel.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/proveedor-panel.css" asp-append-version="true" />
+</head>
+<body>
+
+    @if (TempData["Success"] != null)
+    {
+        <div id="toast-msg" class="toast-msg toast-success">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="7" fill="#27ae60" />
+                <path d="M4.5 8l2.5 2.5 4.5-4.5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
+            @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div id="toast-msg" class="toast-msg toast-error">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="7" fill="#c0392b" />
+                <path d="M5.5 5.5l5 5M10.5 5.5l-5 5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
+            @TempData["Error"]
+        </div>
+    }
+
+    <div class="admin-wrapper">
+
+        <aside class="admin-sidebar">
+            <div class="sidebar-logo">
+                <img src="~/images/logo-fresco.png" alt="Fresco Market"
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+                <div style="display:none;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;">
+                    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+                        <rect x="3" y="20" width="6" height="12" rx="1" fill="#f5d060" />
+                        <rect x="13" y="14" width="6" height="18" rx="1" fill="#f5d060" />
+                        <rect x="23" y="8" width="6" height="24" rx="1" fill="#f5d060" />
+                        <line x1="0" y1="33" x2="36" y2="33" stroke="#f5d060" stroke-width="2" />
+                    </svg>
+                </div>
+            </div>
+
+            @* Ícono proveedor *@
+            <div class="cli-avatar">
+                <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+                    <circle cx="26" cy="26" r="25" fill="#c89010" stroke="#f5d060" stroke-width="1.5" />
+                    <rect x="10" y="22" width="32" height="16" rx="2" fill="#f5d060" />
+                    <path d="M16 22V17a10 10 0 0 1 20 0v5" stroke="#b8860b" stroke-width="2" fill="none" />
+                    <circle cx="20" cy="30" r="2.5" fill="#b8860b" />
+                    <circle cx="32" cy="30" r="2.5" fill="#b8860b" />
+                </svg>
+            </div>
+
+            @* INICIO *@
+            <button class="nav-btn" onclick="showPanelProv('dashboard',this)" type="button">
+                <div class="nav-icon-wrap">
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                        <path d="M3 14L14 3l11 11" stroke="#f5d060" stroke-width="2" fill="none" stroke-linecap="round" />
+                        <rect x="8" y="14" width="12" height="11" rx="1" fill="#f5d060" />
+                        <rect x="11" y="18" width="6" height="7" rx="1" fill="#b8860b" />
+                    </svg>
+                </div>
+                <span>INICIO</span>
+            </button>
+
+            @* MI PERFIL *@
+            <button class="nav-btn" onclick="showPanelProv('perfil',this)" type="button">
+                <div class="nav-icon-wrap">
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                        <circle cx="14" cy="9" r="5" fill="#f5d060" />
+                        <path d="M3 26c0-5.5 4.9-10 11-10s11 4.5 11 10" stroke="#f5d060" stroke-width="2" fill="none" />
+                    </svg>
+                </div>
+                <span>MI PERFIL</span>
+            </button>
+
+            @* MIS PRODUCTOS *@
+            <button class="nav-btn" onclick="showPanelProv('productos',this)" type="button">
+                <div class="nav-icon-wrap">
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                        <rect x="3" y="3" width="9" height="9" rx="1" fill="#f5d060" />
+                        <rect x="16" y="3" width="9" height="9" rx="1" fill="#f5d060" />
+                        <rect x="3" y="16" width="9" height="9" rx="1" fill="#f5d060" />
+                        <rect x="16" y="16" width="9" height="9" rx="1" fill="#f5d060" />
+                    </svg>
+                </div>
+                <span>MIS PRODUCTOS</span>
+            </button>
+
+            @* MI CATÁLOGO *@
+            <button class="nav-btn" onclick="showPanelProv('catalogo',this)" type="button">
+                <div class="nav-icon-wrap">
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                        <rect x="3" y="3" width="22" height="22" rx="2" stroke="#f5d060" stroke-width="1.5" fill="none" />
+                        <line x1="8" y1="9" x2="20" y2="9" stroke="#f5d060" stroke-width="1.5" stroke-linecap="round" />
+                        <line x1="8" y1="14" x2="20" y2="14" stroke="#f5d060" stroke-width="1.5" stroke-linecap="round" />
+                        <line x1="8" y1="19" x2="14" y2="19" stroke="#f5d060" stroke-width="1.5" stroke-linecap="round" />
+                    </svg>
+                </div>
+                <span>MI CATÁLOGO</span>
+            </button>
+
+            @* HISTORIAL *@
+            <button class="nav-btn" onclick="showPanelProv('historial',this)" type="button">
+                <div class="nav-icon-wrap">
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                        <circle cx="14" cy="14" r="11" stroke="#f5d060" stroke-width="1.5" fill="none" />
+                        <line x1="14" y1="8" x2="14" y2="15" stroke="#f5d060" stroke-width="2" stroke-linecap="round" />
+                        <line x1="14" y1="15" x2="19" y2="18" stroke="#f5d060" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                </div>
+                <span>HISTORIAL</span>
+            </button>
+
+            @* REPORTES *@
+            <button class="nav-btn" onclick="showPanelProv('reportes',this)" type="button">
+                <div class="nav-icon-wrap">
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                        <rect x="2" y="16" width="5" height="10" fill="#f5d060" />
+                        <rect x="10" y="10" width="5" height="16" fill="#f5d060" />
+                        <rect x="18" y="4" width="5" height="22" fill="#f5d060" />
+                        <line x1="0" y1="27" x2="28" y2="27" stroke="#f5d060" stroke-width="1.5" />
+                    </svg>
+                </div>
+                <span>REPORTES</span>
+            </button>
+
+        </aside>
+
+        <div class="admin-main">
+            <div class="admin-topbar">
+                <h1>Bienvenido, @ViewBag.ProveedorNombre</h1>
+                <div class="topbar-right">
+                    <div class="topbar-user-info">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <circle cx="7" cy="4.5" r="3" fill="currentColor" />
+                            <path d="M1 13c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.2" fill="none" />
+                        </svg>
+                        <span class="sidebar-avatar-name">Proveedor</span>
+                    </div>
+                    <a asp-controller="Account" asp-action="Logout" class="topbar-btn-logout">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <path d="M5 2H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+                            <path d="M9 10l3-3-3-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+                            <line x1="12" y1="7" x2="5" y2="7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+                        </svg>
+                        SALIR
+                    </a>
+                </div>
+            </div>
+            <div class="admin-content">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+
+    <script src="~/js/admin-panel.js" asp-append-version="true"></script>
+    <script>
+            function showPanelProv(name, btn) {
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                var panel = document.getElementById('panel-' + name);
+                if (panel) panel.classList.add('active');
+                if (btn) btn.classList.add('active');
+                if (name === 'historial') historialInicializar();
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                var panel = '@(TempData["ActivePanel"] ?? "dashboard")';
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                var el = document.getElementById('panel-' + panel);
+                if (el) el.classList.add('active');
+                document.querySelectorAll('.nav-btn').forEach(function(btn) {
+                    if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes("'" + panel + "'"))
+                        btn.classList.add('active');
+                });
+
+                var toast = document.getElementById('toast-msg');
+                if (toast) {
+                    setTimeout(function() {
+                        toast.classList.add('toast-hide');
+                        setTimeout(function() { toast.remove(); }, 400);
+                    }, 3500);
+                }
+            });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+    @* ── MODAL CAMBIO CONTRASEÑA OBLIGATORIO ── *@
+    <div id="modal-cambio-obligatorio" style="display:none;position:fixed;top:0;left:0;
+        width:100%;height:100%;background:rgba(0,0,0,0.75);z-index:9999;
+        align-items:center;justify-content:center;">
+        <div style="background:rgba(255,248,220,0.97);border:2px solid rgba(255,215,0,0.6);
+            border-radius:14px;width:400px;max-width:92vw;padding:28px 26px 22px;
+            box-shadow:0 8px 32px rgba(0,0,0,0.45);">
+            <div style="text-align:center;font-size:36px;margin-bottom:8px;">🔐</div>
+            <div style="font-size:16px;font-weight:800;color:#3a2500;text-align:center;margin-bottom:6px;">
+                Cambio de contraseña requerido
+            </div>
+            <div style="font-size:12px;color:#7a5500;text-align:center;margin-bottom:18px;line-height:1.6;">
+                Por seguridad, necesitás establecer una contraseña personal antes de continuar.
+            </div>
+            <div style="background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.4);
+                border-radius:6px;padding:8px 12px;font-size:11px;color:#7a5500;
+                margin-bottom:16px;line-height:1.6;">
+                Mínimo 8 caracteres · Una mayúscula · Una minúscula · Un número · Un carácter especial
+            </div>
+            <div id="cambio-error" style="display:none;background:rgba(192,57,43,0.2);
+            border:1px solid rgba(192,57,43,0.5);border-radius:6px;padding:7px 12px;
+            font-size:11px;color:#c0392b;margin-bottom:12px;"></div>
+            <div id="cambio-success" style="display:none;background:rgba(39,174,96,0.15);
+            border:1px solid rgba(39,174,96,0.4);border-radius:6px;padding:7px 12px;
+            font-size:11px;color:#1e8449;margin-bottom:12px;"></div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+                <div style="display:flex;flex-direction:column;gap:3px;">
+                    <label style="font-size:10px;font-weight:700;color:#7a5500;letter-spacing:0.5px;">
+                        NUEVA CONTRASEÑA
+                    </label>
+                    <input type="password" id="cambio-nueva" placeholder="••••••••"
+                           style="border:1.5px solid #c8a000;border-radius:7px;padding:9px 12px;
+                    font-size:12px;background:#fffef0;color:#2a1800;outline:none;width:100%;" />
+                </div>
+                <div style="display:flex;flex-direction:column;gap:3px;">
+                    <label style="font-size:10px;font-weight:700;color:#7a5500;letter-spacing:0.5px;">
+                        CONFIRMAR CONTRASEÑA
+                    </label>
+                    <input type="password" id="cambio-confirmar" placeholder="••••••••"
+                           style="border:1.5px solid #c8a000;border-radius:7px;padding:9px 12px;
+                    font-size:12px;background:#fffef0;color:#2a1800;outline:none;width:100%;" />
+                </div>
+                <button onclick="submitCambioObligatorio()"
+                        style="background:linear-gradient(135deg,#d4a017,#f0c030);color:#2a1800;
+                    border:none;border-radius:8px;padding:11px 0;font-size:12px;
+                    font-weight:800;cursor:pointer;letter-spacing:1px;margin-top:4px;
+                    box-shadow:0 4px 16px rgba(212,160,23,0.35);">
+                    ESTABLECER CONTRASEÑA
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+            (function () {
+                var requiere = '@(Context.Session.GetString("RequiereCambioContrasena") ?? "False")';
+                if (requiere === 'True') {
+                    document.getElementById('modal-cambio-obligatorio').style.display = 'flex';
+                }
+            })();
+
+            function submitCambioObligatorio() {
+                var nueva = document.getElementById('cambio-nueva').value;
+                var confirmar = document.getElementById('cambio-confirmar').value;
+                var errorDiv = document.getElementById('cambio-error');
+                var successDiv = document.getElementById('cambio-success');
+
+                errorDiv.style.display = 'none';
+                successDiv.style.display = 'none';
+
+                if (!nueva || !confirmar) {
+                    errorDiv.textContent = 'Completá ambos campos.';
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+                if (nueva !== confirmar) {
+                    errorDiv.textContent = 'Las contraseñas no coinciden.';
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+                if (nueva.length < 8) {
+                    errorDiv.textContent = 'La contraseña debe tener al menos 8 caracteres.';
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+
+                fetch('/Account/CambiarContrasenaSession', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nuevaContrasena: nueva })
+                })
+                .then(r => r.json())
+                .then(function (data) {
+                    if (data.ok) {
+                        successDiv.textContent = '✓ Contraseña actualizada. ¡Bienvenido!';
+                        successDiv.style.display = 'block';
+                        setTimeout(function () {
+                            document.getElementById('modal-cambio-obligatorio').style.display = 'none';
+                        }, 1500);
+                    } else {
+                        errorDiv.textContent = data.error || 'Error al cambiar la contraseña.';
+                        errorDiv.style.display = 'block';
+                    }
+                })
+                .catch(function () {
+                    errorDiv.textContent = 'Error de conexión.';
+                    errorDiv.style.display = 'block';
+                });
+            }
+    </script>
+
+</body>
+</html>

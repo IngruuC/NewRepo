@@ -1,0 +1,545 @@
+﻿@model PROYECTO_WEB.TESIS.Models.RegistroViewModel
+@{
+    ViewData["Title"] = "Registro"; Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Registro - Fresco Market</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        .video-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            background: #3a2500;
+        }
+        .video-bg video {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            opacity: 0.85;
+        }
+        .video-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
+            background: linear-gradient(135deg,rgba(30,15,0,0.55) 0%,rgba(90,60,0,0.35) 50%,rgba(30,15,0,0.55) 100%);
+        }
+
+        .register-card {
+            position: relative;
+            z-index: 2;
+            background: rgba(255,248,220,0.18);
+            border: 1.5px solid rgba(255,215,0,0.45);
+            border-radius: 18px;
+            width: 480px;
+            max-width: 100%;
+            padding: 28px 30px 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.15);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+
+        .logo-mini {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2.5px solid rgba(255,215,0,0.7);
+            box-shadow: 0 0 24px rgba(212,160,23,0.6), 0 0 48px rgba(212,160,23,0.25);
+            margin: 0 auto 12px;
+            background: #3a2500;
+        }
+        .logo-mini video { width: 100%; height: 100%; object-fit: cover; }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #fff8dc;
+            letter-spacing: 1px;
+            text-align: center;
+            margin-bottom: 2px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+        .card-subtitle {
+            font-size: 10px;
+            color: #f5d060;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        .tipo-selector {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 4px;
+        }
+        .tipo-btn {
+            flex: 1;
+            padding: 8px 0;
+            border: none;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            transition: background 0.15s, color 0.15s;
+        }
+        .tipo-btn.active {
+            background: linear-gradient(135deg, #d4a017, #f0c030);
+            color: #2a1800;
+        }
+        .tipo-btn:not(.active) {
+            background: transparent;
+            color: rgba(245,208,96,0.7);
+        }
+
+        .section-title {
+            font-size: 9.5px;
+            font-weight: 700;
+            color: #f5d060;
+            letter-spacing: 0.8px;
+            margin: 12px 0 8px;
+            border-bottom: 1px solid rgba(255,215,0,0.25);
+            padding-bottom: 4px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .form-grid .full { grid-column: 1 / -1; }
+        .fg { display: flex; flex-direction: column; gap: 3px; }
+
+        label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #f5d060;
+            letter-spacing: 0.5px;
+        }
+        input {
+            border: 1.5px solid rgba(255,215,0,0.35);
+            border-radius: 7px;
+            padding: 8px 11px;
+            font-size: 12px;
+            background: rgba(255,250,220,0.14);
+            color: #fff8dc;
+            outline: none;
+            transition: border-color 0.2s, background 0.2s;
+            width: 100%;
+        }
+        input::placeholder { color: rgba(245,208,96,0.4); }
+        input:focus {
+            border-color: rgba(255,215,0,0.8);
+            background: rgba(255,250,220,0.22);
+        }
+        input[readonly] {
+            background: rgba(255,215,0,0.08);
+            color: rgba(255,248,220,0.6);
+            cursor: not-allowed;
+        }
+
+        .alert-error {
+            background: rgba(192,57,43,0.25);
+            border: 1px solid rgba(192,57,43,0.6);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: #ffd7d7;
+            font-size: 11px;
+            margin-bottom: 12px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(135deg, #d4a017 0%, #f0c030 50%, #d4a017 100%);
+            color: #2a1800;
+            border: none;
+            border-radius: 8px;
+            padding: 11px 0;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            letter-spacing: 1px;
+            margin-top: 14px;
+            transition: filter 0.15s, transform 0.1s;
+            box-shadow: 0 4px 16px rgba(212,160,23,0.35);
+        }
+        .btn-submit:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-submit:active { transform: translateY(0); }
+
+        .link-row {
+            margin-top: 14px;
+            text-align: center;
+            font-size: 11px;
+            color: rgba(245,208,96,0.75);
+        }
+        .link-row a { color: #f5d060; font-weight: 700; text-decoration: none; }
+        .link-row a:hover { text-decoration: underline; }
+
+        /* Modal DNI */
+        .modal-dni-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.65);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-dni-box {
+            background: rgba(255,248,220,0.97);
+            border: 2px solid rgba(255,215,0,0.6);
+            border-radius: 14px;
+            width: 380px;
+            max-width: 90vw;
+            padding: 24px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+        }
+        .modal-dni-titulo {
+            font-size: 16px;
+            font-weight: 800;
+            color: #3a2500;
+            margin-bottom: 10px;
+        }
+        .modal-dni-cuerpo {
+            font-size: 13px;
+            color: #5a3e00;
+            line-height: 1.7;
+            margin-bottom: 18px;
+        }
+        .modal-dni-cuerpo strong { color: #2a1800; }
+        .modal-dni-btns { display: flex; gap: 8px; justify-content: flex-end; }
+        .btn-modal-cancelar {
+            background: #888;
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            padding: 8px 18px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-modal-confirmar {
+            background: linear-gradient(135deg, #d4a017, #f0c030);
+            color: #2a1800;
+            border: none;
+            border-radius: 7px;
+            padding: 8px 18px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-modal-login {
+            background: linear-gradient(135deg, #2980b9, #3498db);
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            padding: 8px 18px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="video-bg">
+        <video autoplay loop muted playsinline>
+            <source src="~/videos/logo-animado.mp4" type="video/mp4" />
+        </video>
+    </div>
+    <div class="video-overlay"></div>
+
+    <!-- MODAL VERIFICACIÓN DNI / CUIT -->
+    <div class="modal-dni-overlay" id="modal-dni">
+        <div class="modal-dni-box">
+            <div class="modal-dni-titulo" id="modal-dni-titulo"></div>
+            <div class="modal-dni-cuerpo" id="modal-dni-cuerpo"></div>
+            <div class="modal-dni-btns">
+                <button type="button" class="btn-modal-cancelar" onclick="cerrarModalDni()">CANCELAR</button>
+                <button type="button" class="btn-modal-confirmar" id="modal-dni-btn-confirmar" style="display:none">SÍ, SOY YO</button>
+                <button type="button" class="btn-modal-login" id="modal-dni-btn-login" style="display:none"
+                        onclick="window.location.href='/Account/Login'">IR AL LOGIN</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="register-card">
+
+        <div class="logo-mini">
+            <video autoplay loop muted playsinline>
+                <source src="~/videos/logo-animado.mp4" type="video/mp4" />
+            </video>
+        </div>
+
+        <div class="card-title">🛒 Fresco Market</div>
+        <div class="card-subtitle">CREAR CUENTA</div>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert-error">@Html.ValidationSummary(false)</div>
+        }
+
+        <form asp-action="Register" method="post" id="form-registro">
+
+            <div class="tipo-selector">
+                <button type="button" class="tipo-btn active" id="btn-tipo-cliente"
+                        onclick="cambiarTipo('Cliente')">CLIENTE</button>
+                <button type="button" class="tipo-btn" id="btn-tipo-proveedor"
+                        onclick="cambiarTipo('Proveedor')">PROVEEDOR</button>
+            </div>
+
+            <input type="hidden" asp-for="TipoUsuario" id="hidden-tipo" value="Cliente" />
+            <input type="hidden" asp-for="ClienteId" id="hidden-cliente-id" />
+            <input type="hidden" asp-for="ProveedorId" id="hidden-proveedor-id" />
+
+            <!-- Datos de acceso -->
+            <div class="section-title">DATOS DE ACCESO</div>
+            <div class="form-grid">
+                <div class="fg full">
+                    <label asp-for="NombreUsuario">USUARIO</label>
+                    <input asp-for="NombreUsuario" id="campo-usuario" placeholder="Nombre de usuario" autocomplete="username" />
+                </div>
+                <div class="fg">
+                    <label asp-for="Contraseña">CONTRASEÑA</label>
+                    <input asp-for="Contraseña" type="password" placeholder="••••••••" autocomplete="new-password" />
+                </div>
+                <div class="fg">
+                    <label asp-for="Email">EMAIL</label>
+                    <input asp-for="Email" type="email" placeholder="correo@email.com" />
+                </div>
+            </div>
+
+            <!-- Campos cliente -->
+            <div id="campos-cliente">
+                <div class="section-title">DATOS PERSONALES</div>
+                <div class="form-grid">
+                    <div class="fg">
+                        <label asp-for="Nombre">NOMBRE</label>
+                        <input asp-for="Nombre" id="campo-nombre" placeholder="Juan" />
+                    </div>
+                    <div class="fg">
+                        <label asp-for="Apellido">APELLIDO</label>
+                        <input asp-for="Apellido" id="campo-apellido" placeholder="Pérez" />
+                    </div>
+                    <div class="fg">
+                        <label asp-for="Documento">DOCUMENTO (8 dígitos)</label>
+                        <input asp-for="Documento" id="campo-documento" placeholder="12345678" maxlength="8" />
+                    </div>
+                    <div class="fg">
+                        <label asp-for="Direccion">DIRECCIÓN</label>
+                        <input asp-for="Direccion" id="campo-direccion" placeholder="Av. Principal 123" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Campos proveedor -->
+            <div id="campos-proveedor" style="display:none">
+                <div class="section-title">DATOS DEL PROVEEDOR</div>
+                <div class="form-grid">
+                    <div class="fg">
+                        <label asp-for="RazonSocial">RAZÓN SOCIAL</label>
+                        <input asp-for="RazonSocial" id="campo-razon" placeholder="Empresa S.A." />
+                    </div>
+                    <div class="fg">
+                        <label asp-for="Cuit">CUIT (11 dígitos)</label>
+                        <input asp-for="Cuit" id="campo-cuit" placeholder="20123456789" maxlength="11" />
+                    </div>
+                    <div class="fg">
+                        <label asp-for="Telefono">TELÉFONO</label>
+                        <input asp-for="Telefono" id="campo-telefono" placeholder="+54 341 0000000" />
+                    </div>
+                    <div class="fg">
+                        <label asp-for="DireccionProveedor">DIRECCIÓN</label>
+                        <input asp-for="DireccionProveedor" id="campo-dir-prov" placeholder="Av. Comercial 456" />
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">REGISTRARSE</button>
+        </form>
+
+        <div class="link-row">
+            ¿Ya tenés cuenta? <a asp-action="Login">Iniciar sesión</a>
+        </div>
+    </div>
+
+    <script>
+        // ── CAMBIO DE TIPO ──
+        function cambiarTipo(tipo) {
+            document.getElementById('hidden-tipo').value = tipo;
+            document.getElementById('btn-tipo-cliente').className = 'tipo-btn' + (tipo === 'Cliente' ? ' active' : '');
+            document.getElementById('btn-tipo-proveedor').className = 'tipo-btn' + (tipo === 'Proveedor' ? ' active' : '');
+            document.getElementById('campos-cliente').style.display = tipo === 'Cliente' ? '' : 'none';
+            document.getElementById('campos-proveedor').style.display = tipo === 'Proveedor' ? '' : 'none';
+            // Limpiar vinculaciones al cambiar tipo
+            document.getElementById('hidden-cliente-id').value = '';
+            document.getElementById('hidden-proveedor-id').value = '';
+            resetearCamposCliente();
+            resetearCamposProveedor();
+        }
+
+        // ── VERIFICACIÓN DNI ──
+        document.getElementById('campo-documento').addEventListener('blur', function () {
+            var dni = this.value.trim();
+            if (dni.length !== 8) return;
+
+            fetch('/Account/VerificarDni?documento=' + dni)
+                .then(r => r.json())
+                .then(function (data) {
+                    if (data.error || !data.existe) return;
+
+                    if (data.tieneUsuario) {
+                        mostrarModalDni(
+                            '⚠️ Ya tenés un usuario asignado',
+                            'El sistema encontró que ya tenés un usuario creado para este documento.<br><br>' +
+                            'Tu usuario es: <strong>' + data.nombreUsuario + '</strong><br><br>' +
+                            'Ingresá con ese usuario desde el login.',
+                            'login'
+                        );
+                        return;
+                    }
+
+                    // Cliente existe sin usuario — mostrar confirmación
+                    mostrarModalDni(
+                        '¿Sos vos?',
+                        'Encontramos tu información en el sistema:<br><br>' +
+                        '<strong>' + data.nombre + ' ' + data.apellido + '</strong><br>' +
+                        'DNI: ' + dni + '<br>' +
+                        'Dirección: ' + data.direccion + '<br><br>' +
+                        'Si sos vos, solo completá tus datos de acceso para activar tu cuenta.',
+                        'confirmar',
+                        data
+                    );
+                })
+                .catch(function () { });
+        });
+
+        // ── VERIFICACIÓN CUIT ──
+        document.getElementById('campo-cuit').addEventListener('blur', function () {
+            var cuit = this.value.trim();
+            if (cuit.length !== 11) return;
+
+            fetch('/Account/VerificarCuit?cuit=' + cuit)
+                .then(r => r.json())
+                .then(function (data) {
+                    if (data.error || !data.existe) return;
+
+                    if (data.tieneUsuario) {
+                        mostrarModalDni(
+                            '⚠️ Ya tenés un usuario asignado',
+                            'El sistema encontró que ya tenés un usuario creado para este CUIT.<br><br>' +
+                            'Tu usuario es: <strong>' + data.nombreUsuario + '</strong><br><br>' +
+                            'Ingresá con ese usuario desde el login.',
+                            'login'
+                        );
+                        return;
+                    }
+
+                    mostrarModalDni(
+                        '¿Es tu empresa?',
+                        'Encontramos tu empresa en el sistema:<br><br>' +
+                        '<strong>' + data.razonSocial + '</strong><br>' +
+                        'CUIT: ' + cuit + '<br>' +
+                        'Teléfono: ' + data.telefono + '<br>' +
+                        'Dirección: ' + data.direccion + '<br><br>' +
+                        'Si es tu empresa, solo completá tus datos de acceso para activar la cuenta.',
+                        'confirmar-proveedor',
+                        data
+                    );
+                })
+                .catch(function () { });
+        });
+
+        // ── MODAL ──
+        function mostrarModalDni(titulo, cuerpo, accion, data) {
+            document.getElementById('modal-dni-titulo').textContent = titulo;
+            document.getElementById('modal-dni-cuerpo').innerHTML = cuerpo;
+
+            var btnConfirmar = document.getElementById('modal-dni-btn-confirmar');
+            var btnLogin = document.getElementById('modal-dni-btn-login');
+
+            btnConfirmar.style.display = 'none';
+            btnLogin.style.display = 'none';
+
+            if (accion === 'login') {
+                btnLogin.style.display = '';
+            } else if (accion === 'confirmar') {
+                btnConfirmar.style.display = '';
+                btnConfirmar.textContent = 'SÍ, SOY YO';
+                btnConfirmar.onclick = function () {
+                    // Autocompletar y bloquear campos
+                    document.getElementById('campo-nombre').value = data.nombre;
+                    document.getElementById('campo-nombre').readOnly = true;
+                    document.getElementById('campo-apellido').value = data.apellido;
+                    document.getElementById('campo-apellido').readOnly = true;
+                    document.getElementById('campo-direccion').value = data.direccion;
+                    document.getElementById('campo-direccion').readOnly = true;
+                    document.getElementById('hidden-cliente-id').value = data.clienteId;
+                    cerrarModalDni();
+                };
+            } else if (accion === 'confirmar-proveedor') {
+                btnConfirmar.style.display = '';
+                btnConfirmar.textContent = 'SÍ, ES MI EMPRESA';
+                btnConfirmar.onclick = function () {
+                    document.getElementById('campo-razon').value = data.razonSocial;
+                    document.getElementById('campo-razon').readOnly = true;
+                    document.getElementById('campo-telefono').value = data.telefono;
+                    document.getElementById('campo-telefono').readOnly = true;
+                    document.getElementById('campo-dir-prov').value = data.direccion;
+                    document.getElementById('campo-dir-prov').readOnly = true;
+                    document.getElementById('hidden-proveedor-id').value = data.proveedorId;
+                    cerrarModalDni();
+                };
+            }
+
+            document.getElementById('modal-dni').style.display = 'flex';
+        }
+
+        function cerrarModalDni() {
+            document.getElementById('modal-dni').style.display = 'none';
+        }
+
+        // Cerrar modal clickando afuera
+        document.getElementById('modal-dni').addEventListener('click', function (e) {
+            if (e.target === this) cerrarModalDni();
+        });
+
+        // ── RESET DE CAMPOS ──
+        function resetearCamposCliente() {
+            ['campo-nombre', 'campo-apellido', 'campo-documento', 'campo-direccion'].forEach(function (id) {
+                var el = document.getElementById(id);
+                if (el) { el.value = ''; el.readOnly = false; }
+            });
+        }
+
+        function resetearCamposProveedor() {
+            ['campo-razon', 'campo-cuit', 'campo-telefono', 'campo-dir-prov'].forEach(function (id) {
+                var el = document.getElementById(id);
+                if (el) { el.value = ''; el.readOnly = false; }
+            });
+        }
+    </script>
+</body>
+</html>

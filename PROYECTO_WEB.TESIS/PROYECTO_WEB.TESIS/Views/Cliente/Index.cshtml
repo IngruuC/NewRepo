@@ -1,0 +1,32 @@
+﻿@model List<ENTIDADES.Cliente>
+@{
+    ViewData["Title"] = "Clientes";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>👥 Clientes</h2>
+    <a asp-action="Crear" class="btn btn-success">+ Nuevo Cliente</a>
+</div>
+<table class="table table-striped table-hover shadow-sm">
+    <thead class="table-success">
+        <tr><th>Documento</th><th>Nombre</th><th>Apellido</th><th>Dirección</th><th>Usuario</th><th>Acciones</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var c in Model)
+        {
+            <tr>
+                <td>@c.Documento</td>
+                <td>@c.Nombre</td>
+                <td>@c.Apellido</td>
+                <td>@c.Direccion</td>
+                <td>@(c.Usuario?.NombreUsuario ?? "No asignado")</td>
+                <td>
+                    <a asp-action="Editar" asp-route-id="@c.Id" class="btn btn-sm btn-warning">Editar</a>
+                    <form asp-action="Eliminar" method="post" style="display:inline" onsubmit="return confirm('¿Eliminar cliente?')">
+                        <input type="hidden" name="id" value="@c.Id" />
+                        <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,359 @@
+﻿@* Views/Shared/_LayoutAdmin.cshtml *@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Fresco Market</title>
+    <link rel="stylesheet" href="~/css/admin-panel.css" asp-append-version="true" />
+</head>
+<body>
+
+    @* ── TOAST DE NOTIFICACIÓN (centro de pantalla, aparece y desaparece) ── *@
+    @if (TempData["Success"] != null)
+    {
+        <div id="toast-msg" class="toast-msg toast-success">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="7" fill="#27ae60" />
+                <path d="M4.5 8l2.5 2.5 4.5-4.5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
+            @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div id="toast-msg" class="toast-msg toast-error">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="7" fill="#c0392b" />
+                <path d="M5.5 5.5l5 5M10.5 5.5l-5 5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
+            @TempData["Error"]
+        </div>
+    }
+
+    <div class="admin-wrapper">
+
+        @* ── SIDEBAR ── *@
+        <aside class="admin-sidebar">
+            <div class="sidebar-logo">
+                <img src="~/images/logo-fresco.png" alt="Fresco Market"
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+                <div style="display:none;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;">
+                    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+                        <rect x="3" y="20" width="6" height="12" rx="1" fill="#f5d060" />
+                        <rect x="13" y="14" width="6" height="18" rx="1" fill="#f5d060" />
+                        <rect x="23" y="8" width="6" height="24" rx="1" fill="#f5d060" />
+                        <line x1="0" y1="33" x2="36" y2="33" stroke="#f5d060" stroke-width="2" />
+                    </svg>
+                </div>
+            </div>
+
+            @* INICIO *@
+            <button class="nav-btn" onclick="showPanel('inicio',this)" type="button">
+                <div class="nav-icon-wrap">
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                        <path d="M3 14L14 3l11 11" stroke="#f5d060" stroke-width="2" fill="none" stroke-linecap="round" />
+                        <rect x="8" y="14" width="12" height="11" rx="1" fill="#f5d060" />
+                        <rect x="11" y="18" width="6" height="7" rx="1" fill="#b8860b" />
+                    </svg>
+                </div>
+                <span>INICIO</span>
+            </button>
+
+            @* CLIENTES *@
+            <button class="nav-btn" onclick="showPanel('clientes',this)" type="button">
+                <div class="nav-icon-wrap">
+                    <img src="~/images/icon-clientes.png" alt=""
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+                    <svg style="display:none" width="28" height="28" viewBox="0 0 28 28" fill="none">
+                        <circle cx="14" cy="9" r="5" fill="#f5d060" />
+                        <path d="M3 26c0-5.5 4.9-10 11-10s11 4.5 11 10" stroke="#f5d060" stroke-width="2" fill="none" />
+                    </svg>
+                </div>
+                <span>CLIENTES</span>
+            </button>
+
+            @* PRODUCTOS *@
+            <button class="nav-btn" onclick="showPanel('productos',this)" type="button">
+                <div class="nav-icon-wrap">
+                    <img src="~/images/icon-productos.png" alt=""
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+                    <svg style="display:none" width="28" height="28" viewBox="0 0 28 28" fill="none">
+                        <rect x="3" y="3" width="9" height="9" rx="1" fill="#f5d060" />
+                        <rect x="16" y="3" width="9" height="9" rx="1" fill="#f5d060" />
+                        <rect x="3" y="16" width="9" height="9" rx="1" fill="#f5d060" />
+                        <rect x="16" y="16" width="9" height="9" rx="1" fill="#f5d060" />
+                    </svg>
+                </div>
+                <span>PRODUCTOS</span>
+            </button>
+
+            @* NUEVA VENTA *@
+            <button class="nav-btn" onclick="showPanel('nueva-venta',this)" type="button">
+                <div class="nav-icon-wrap">
+                    <img src="~/images/icon-venta.png" alt=""
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+                    <svg style="display:none" width="28" height="28" viewBox="0 0 28 28" fill="none">
+                        <path d="M4 4h3l3.5 14h12l3-10H9" stroke="#f5d060" stroke-width="2" fill="none" />
+                        <circle cx="13" cy="24" r="2" fill="#f5d060" />
+                        <circle cx="21" cy="24" r="2" fill="#f5d060" />
+                    </svg>
+                </div>
+                <span>NUEVA VENTA</span>
+            </button>
+
+            @* VENTAS TOTALES *@
+            <button class="nav-btn" onclick="showPanel('ventas-totales',this)" type="button">
+                <div class="nav-icon-wrap">
+                    <img src="~/images/icon-ventas.png" alt=""
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+                    <svg style="display:none" width="28" height="28" viewBox="0 0 28 28" fill="none">
+                        <rect x="2" y="16" width="5" height="10" fill="#f5d060" />
+                        <rect x="10" y="10" width="5" height="16" fill="#f5d060" />
+                        <rect x="18" y="4" width="5" height="22" fill="#f5d060" />
+                        <line x1="0" y1="27" x2="28" y2="27" stroke="#f5d060" stroke-width="1.5" />
+                    </svg>
+                </div>
+                <span>VENTAS TOTALES</span>
+            </button>
+
+            @* PROVEEDORES *@
+            <button class="nav-btn" onclick="showPanel('proveedores',this)" type="button">
+                <div class="nav-icon-wrap">
+                    <img src="~/images/icon-proveedor.png" alt=""
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+                    <svg style="display:none" width="28" height="28" viewBox="0 0 28 28" fill="none">
+                        <rect x="2" y="12" width="24" height="12" rx="2" fill="#f5d060" />
+                        <path d="M7 12V9a7 7 0 0 1 14 0v3" stroke="#f5d060" stroke-width="2" fill="none" />
+                        <circle cx="10" cy="18" r="2" fill="#b8860b" />
+                        <circle cx="18" cy="18" r="2" fill="#b8860b" />
+                    </svg>
+                </div>
+                <span>PROVEEDORES</span>
+            </button>
+
+            @* NUEVA COMPRA *@
+            <button class="nav-btn" onclick="showPanel('nueva-compra',this)" type="button">
+                <div class="nav-icon-wrap">
+                    <img src="~/images/icon-compra.png" alt=""
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+                    <svg style="display:none" width="28" height="28" viewBox="0 0 28 28" fill="none">
+                        <rect x="3" y="5" width="22" height="18" rx="2" stroke="#f5d060" stroke-width="2" fill="none" />
+                        <line x1="3" y1="11" x2="25" y2="11" stroke="#f5d060" stroke-width="1.5" />
+                        <line x1="9" y1="5" x2="9" y2="3" stroke="#f5d060" stroke-width="2" />
+                        <line x1="19" y1="5" x2="19" y2="3" stroke="#f5d060" stroke-width="2" />
+                        <line x1="10" y1="17" x2="18" y2="17" stroke="#f5d060" stroke-width="1.5" />
+                        <line x1="14" y1="14" x2="14" y2="20" stroke="#f5d060" stroke-width="1.5" />
+                    </svg>
+                </div>
+                <span>NUEVA COMPRA</span>
+            </button>
+
+            @* COMPRAS TOTALES *@
+            <button class="nav-btn" onclick="showPanel('compras-totales',this)" type="button">
+                <div class="nav-icon-wrap">
+                    <img src="~/images/icon-compras-totales.png" alt=""
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+                    <svg style="display:none" width="28" height="28" viewBox="0 0 28 28" fill="none">
+                        <rect x="2" y="14" width="5" height="12" fill="#f5d060" />
+                        <rect x="10" y="8" width="5" height="18" fill="#f5d060" />
+                        <rect x="18" y="2" width="5" height="24" fill="#f5d060" />
+                        <path d="M2 6 l7-4 l6 5 l7-6" stroke="#f5d060" stroke-width="1.5" fill="none" />
+                        <circle cx="22" cy="1" r="2" fill="#f5d060" />
+                        <line x1="0" y1="27" x2="28" y2="27" stroke="#f5d060" stroke-width="1.5" />
+                    </svg>
+                </div>
+                <span>COMPRAS TOTALES</span>
+            </button>
+
+            @* PROMOCIONES *@
+            <button class="nav-btn" onclick="showPanel('promociones',this)" type="button">
+                <div class="nav-icon-wrap">
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                        <path d="M4 4h8l12 12-8 8L4 12V4z" stroke="#f5d060" stroke-width="1.5" fill="none" stroke-linejoin="round" />
+                        <circle cx="9" cy="9" r="2" fill="#f5d060" />
+                    </svg>
+                </div>
+                <span>PROMOCIONES</span>
+            </button>
+
+
+        </aside>
+
+        @* ── MAIN ── *@
+        <div class="admin-main">
+
+            @* TOPBAR *@
+            <div class="admin-topbar">
+                <h1>Menú</h1>
+                <div class="topbar-right">
+                    @{
+                        var prodsAlerta = ViewBag.TodosProductos as List<ENTIDADES.Producto> ?? new List<ENTIDADES.Producto>();
+                        var cantCriticos = prodsAlerta.Count(p => p.Stock <= 5 && p.Stock >= 0);
+                    }
+                    <div style="position:relative;">
+                        <button class="topbar-btn-auditoria" id="btn-alertas-stock"
+                                onclick="togglePanelAlertas()" type="button" title="Alertas de stock">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                <path d="M7 1L1 12h12L7 1z" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linejoin="round" />
+                                <line x1="7" y1="5" x2="7" y2="8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+                                <circle cx="7" cy="10" r="0.6" fill="currentColor" />
+                            </svg>
+                            ALERTAS
+                            @if (cantCriticos > 0)
+                            {
+                                <span id="badge-alertas" style="background:#c0392b;color:#fff;border-radius:50%;
+                                    width:18px;height:18px;font-size:10px;font-weight:700;
+                                    display:inline-flex;align-items:center;justify-content:center;margin-left:3px;">
+                                    @cantCriticos
+                                </span>
+                            }
+                        </button>
+
+                        @* PANEL DE ALERTAS *@
+                        <div id="panel-alertas-stock" style="display:none;position:absolute;top:44px;right:0;
+                            width:320px;background:#fffbe6;border:2px solid #b8860b;border-radius:6px;
+                            box-shadow:0 4px 16px rgba(0,0,0,0.2);z-index:3000;">
+                            <div style="background:#c0392b;padding:8px 12px;border-radius:4px 4px 0 0;
+                                display:flex;align-items:center;justify-content:space-between;">
+                                <span style="font-size:12px;font-weight:700;color:#fff;">⚠ PRODUCTOS CON STOCK CRÍTICO</span>
+                                <button onclick="togglePanelAlertas()" style="background:none;border:none;
+                                    color:#fff;font-size:14px;cursor:pointer;font-weight:700;">
+                                    ✕
+                                </button>
+                            </div>
+                            <div style="max-height:300px;overflow-y:auto;">
+                                @if (!prodsAlerta.Any(p => p.Stock <= 5 && p.Stock >= 0))
+                                {
+                                    <div style="padding:16px;text-align:center;color:#7a5500;font-size:12px;">
+                                        ✓ Todos los productos tienen stock suficiente
+                                    </div>
+                                }
+                                else
+                                {
+                                    <table style="width:100%;border-collapse:collapse;font-size:11px;">
+                                        <thead>
+                                            <tr style="background:#f5e888;">
+                                                <th style="padding:6px 10px;text-align:left;color:#5a3e00;">Producto</th>
+                                                <th style="padding:6px 10px;text-align:center;color:#5a3e00;">Stock</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var p in prodsAlerta.Where(p => p.Stock <= 5 && p.Stock >= 0).OrderBy(p => p.Stock))
+                                            {
+                                                <tr style="border-bottom:1px solid #f0d080;">
+                                                    <td style="padding:6px 10px;color:#2a1800;">@p.Nombre</td>
+                                                    <td style="padding:6px 10px;text-align:center;font-weight:700;
+                                                        color:@(p.Stock == 0 ? "#c0392b" : "#e67e22");">
+                                                        @(p.Stock == 0 ? "SIN STOCK" : p.Stock.ToString())
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                }
+                            </div>
+                            <div style="padding:8px 12px;border-top:1px solid #e8c840;text-align:center;">
+                                <button onclick="showPanel('productos', null);togglePanelAlertas();"
+                                        class="btn-form-save" style="width:auto;padding:4px 16px;font-size:11px;">
+                                    IR A PRODUCTOS
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    @* Botón SEGURIDAD (antes: Auditoría) *@
+                    <button class="topbar-btn-auditoria"
+                            onclick="showPanel('seguridad', null)"
+                            type="button" title="Seguridad del sistema">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <path d="M7 1L2 3v4c0 3 2.3 5.3 5 6 2.7-.7 5-3 5-6V3L7 1z"
+                                  stroke="currentColor" stroke-width="1.2" fill="none" />
+                        </svg>
+                        SEGURIDAD
+                    </button>
+
+                    @* Info usuario *@
+                    <div class="topbar-user-info">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <circle cx="7" cy="4.5" r="3" fill="currentColor" />
+                            <path d="M1 13c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.2" fill="none" />
+                        </svg>
+                        <span>@ViewBag.UsuarioNombre</span>
+                    </div>
+
+                    @* Botón cerrar sesión *@
+                    <a asp-controller="Account" asp-action="Logout" class="topbar-btn-logout">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <path d="M5 2H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+                            <path d="M9 10l3-3-3-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+                            <line x1="12" y1="7" x2="5" y2="7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+                        </svg>
+                        SALIR
+                    </a>
+                </div>
+            </div>
+
+            <div class="admin-content">
+                @RenderBody()
+            </div>
+
+        </div>
+    </div>
+
+    @* ── MODAL GENÉRICO (detalle, estadísticas) ── *@
+    <div id="modal-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+        background:rgba(0,0,0,0.55);z-index:1000;align-items:center;justify-content:center;">
+        <div id="modal-box" style="background:#fffbe6;border:2px solid #b8860b;border-radius:8px;
+            width:560px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;">
+            <div id="modal-header" style="background:#d4a017;padding:8px 14px;border-radius:6px 6px 0 0;
+                display:flex;align-items:center;justify-content:space-between;">
+                <span id="modal-title" style="font-size:13px;font-weight:700;color:#3a2500;"></span>
+                <button onclick="cerrarModal()" style="background:#8B6508;border:none;color:#f5d060;
+                    border-radius:50%;width:22px;height:22px;cursor:pointer;font-weight:700;font-size:13px;">
+                    ✕
+                </button>
+            </div>
+            <div id="modal-body" style="padding:14px;overflow-y:auto;flex:1;font-size:12px;
+            color:#2a1800;white-space:pre-wrap;font-family:'Courier New',monospace;
+            line-height:1.6;background:#fff;"></div>
+            <div style="padding:8px 14px;text-align:right;border-top:1px solid #e8c840;">
+                <button onclick="cerrarModal()" class="btn-cancelar" style="font-size:11px;padding:5px 16px;">CERRAR</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/js/admin-panel.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+            function togglePanelAlertas() {
+                var panel = document.getElementById('panel-alertas-stock');
+                if (!panel) return;
+                panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            }
+
+            // Cerrar si clickea afuera
+            document.addEventListener('click', function(e) {
+                var panel = document.getElementById('panel-alertas-stock');
+                var btn = document.getElementById('btn-alertas-stock');
+                if (!panel || !btn) return;
+                if (!panel.contains(e.target) && !btn.contains(e.target)) {
+                    panel.style.display = 'none';
+                }
+            });
+    </script>
+
+    <script>
+            // Auto-hide toast notification
+            document.addEventListener('DOMContentLoaded', function() {
+                var toast = document.getElementById('toast-msg');
+                if (toast) {
+                    setTimeout(function() {
+                        toast.classList.add('toast-hide');
+                        setTimeout(function() { toast.remove(); }, 400);
+                    }, 3500);
+                }
+            });
+    </script>
+</body>
+</html>

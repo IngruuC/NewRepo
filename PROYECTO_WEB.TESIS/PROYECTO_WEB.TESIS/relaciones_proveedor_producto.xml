@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DatosSerializables xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Relaciones>
+    <RegistroRelacion>
+      <ProveedorId>13</ProveedorId>
+      <ProductoId>3</ProductoId>
+      <NombreProducto>Cebolla</NombreProducto>
+    </RegistroRelacion>
+    <RegistroRelacion>
+      <ProveedorId>13</ProveedorId>
+      <ProductoId>5</ProductoId>
+      <NombreProducto>Papel higienico</NombreProducto>
+    </RegistroRelacion>
+    <RegistroRelacion>
+      <ProveedorId>13</ProveedorId>
+      <ProductoId>8</ProductoId>
+      <NombreProducto>Jugo Cepita</NombreProducto>
+    </RegistroRelacion>
+    <RegistroRelacion>
+      <ProveedorId>13</ProveedorId>
+      <ProductoId>11</ProductoId>
+      <NombreProducto>Fanta</NombreProducto>
+    </RegistroRelacion>
+    <RegistroRelacion>
+      <ProveedorId>13</ProveedorId>
+      <ProductoId>12</ProductoId>
+      <NombreProducto>Pepas Terepín</NombreProducto>
+    </RegistroRelacion>
+  </Relaciones>
+</DatosSerializables>

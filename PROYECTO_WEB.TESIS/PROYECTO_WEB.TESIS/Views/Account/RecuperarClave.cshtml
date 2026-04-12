@@ -1,0 +1,151 @@
+﻿@{
+    ViewData["Title"] = "Recuperar Contraseña";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Recuperar Contraseña - Fresco Market</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #3a2500 0%, #7a5800 50%, #b8860b 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .card {
+            background: rgba(255, 248, 220, 0.18);
+            border: 1.5px solid rgba(255, 215, 0, 0.45);
+            border-radius: 18px;
+            width: 380px;
+            padding: 36px 32px 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #fff8dc;
+            margin-bottom: 6px;
+            letter-spacing: 1px;
+        }
+        .subtitle {
+            font-size: 11px;
+            color: #f5d060;
+            margin-bottom: 24px;
+            text-align: center;
+            line-height: 1.5;
+        }
+        .alert {
+            width: 100%;
+            border-radius: 6px;
+            padding: 9px 12px;
+            font-size: 12px;
+            margin-bottom: 14px;
+        }
+        .alert-success { background: rgba(39,174,96,0.2); border: 1px solid rgba(39,174,96,0.5); color: #d5f5e3; }
+        .alert-error   { background: rgba(192,57,43,0.2);  border: 1px solid rgba(192,57,43,0.5);  color: #ffd7d7; }
+        .form-group { width: 100%; margin-bottom: 14px; }
+        .form-group label {
+            display: block;
+            font-size: 10px;
+            font-weight: 700;
+            color: #f5d060;
+            margin-bottom: 5px;
+            letter-spacing: 0.8px;
+        }
+        .form-group input {
+            width: 100%;
+            border: 1.5px solid rgba(255,215,0,0.4);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            background: rgba(255,250,220,0.15);
+            color: #fff8dc;
+            outline: none;
+            backdrop-filter: blur(6px);
+        }
+        .form-group input::placeholder { color: rgba(245,208,96,0.5); }
+        .form-group input:focus {
+            border-color: rgba(255,215,0,0.85);
+            background: rgba(255,250,220,0.25);
+        }
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(135deg, #d4a017, #f0c030, #d4a017);
+            color: #2a1800;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 0;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            letter-spacing: 1px;
+            margin-top: 4px;
+            box-shadow: 0 4px 16px rgba(212,160,23,0.4);
+            transition: filter 0.15s, transform 0.1s;
+        }
+        .btn-submit:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-volver {
+            margin-top: 16px;
+            font-size: 11px;
+            color: rgba(245,208,96,0.85);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .btn-volver:hover { color: #f5d060; text-decoration: underline; }
+        .info-box {
+            width: 100%;
+            background: rgba(255,215,0,0.1);
+            border: 1px solid rgba(255,215,0,0.3);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 11px;
+            color: #f5d060;
+            margin-bottom: 18px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="title">🔑 Recuperar Contraseña</div>
+        <div class="subtitle">Ingresá tu usuario y email registrado para restablecer tu contraseña</div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">✓ @TempData["Success"]</div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-error">✗ @TempData["Error"]</div>
+        }
+
+        <div class="info-box">
+            ℹ️ Se generará una nueva contraseña temporal. Podrás cambiarla desde tu perfil una vez que ingreses.
+        </div>
+
+        <form asp-action="RecuperarClave" method="post" style="width:100%">
+            <div class="form-group">
+                <label>NOMBRE DE USUARIO</label>
+                <input type="text" name="nombreUsuario" placeholder="Ingrese su usuario" required />
+            </div>
+            <div class="form-group">
+                <label>EMAIL REGISTRADO</label>
+                <input type="email" name="email" placeholder="Ingrese su email" required />
+            </div>
+            <button type="submit" class="btn-submit">RECUPERAR CONTRASEÑA</button>
+        </form>
+
+        <a asp-action="Login" class="btn-volver">← Volver al inicio de sesión</a>
+    </div>
+</body>
+</html>

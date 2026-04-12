@@ -1,0 +1,45 @@
+﻿@model List<ENTIDADES.AuditoriaSesion>
+@{
+    ViewData["Title"] = "Auditoría de Sesiones";
+}
+<h2>🔍 Auditoría de Sesiones</h2>
+<form asp-action="Filtrar" method="get" class="row mb-3">
+    <div class="col-md-3">
+        <select name="usuarioId" class="form-select">
+            <option value="">-- Todos los usuarios --</option>
+            @foreach (var u in ViewBag.Usuarios as List<ENTIDADES.Usuario>)
+            {
+                <option value="@u.Id">@u.NombreUsuario</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <input type="date" name="desde" class="form-control" placeholder="Desde" />
+    </div>
+    <div class="col-md-3">
+        <input type="date" name="hasta" class="form-control" placeholder="Hasta" />
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-secondary">Filtrar</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
+    </div>
+</form>
+<table class="table table-striped shadow-sm">
+    <thead class="table-secondary">
+        <tr><th>Usuario</th><th>Ingreso</th><th>Salida</th><th>IP</th><th>Dispositivo</th><th>Tipo</th><th>Activa</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var a in Model)
+        {
+            <tr>
+                <td>@a.NombreUsuario</td>
+                <td>@a.FechaIngreso.ToString("dd/MM/yyyy HH:mm")</td>
+                <td>@(a.FechaSalida?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td>
+                <td>@a.DireccionIP</td>
+                <td>@a.Dispositivo</td>
+                <td>@a.TipoSesion</td>
+                <td><span class="badge @(a.SesionActiva ? "bg-success" : "bg-secondary")">@(a.SesionActiva ? "Activa" : "Cerrada")</span></td>
+            </tr>
+        }
+    </tbody>
+</table>

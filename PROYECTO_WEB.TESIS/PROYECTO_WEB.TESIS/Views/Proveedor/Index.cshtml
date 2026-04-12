@@ -1,0 +1,771 @@
+﻿@{
+    ViewData["Title"] = "Panel Proveedor";
+    Layout = "~/Views/Shared/_LayoutProveedor.cshtml";
+    var proveedor = ViewBag.Proveedor as ENTIDADES.Proveedor;
+    var misProductos = ViewBag.MisProductos as List<ENTIDADES.Producto> ?? new List<ENTIDADES.Producto>();
+    var misCompras = ViewBag.MisCompras as List<ENTIDADES.Compra> ?? new List<ENTIDADES.Compra>();
+
+    var productosSinStock = misProductos.Where(p => p.Stock == 0).ToList();
+    var productosStockBajo = misProductos.Where(p => p.Stock > 0 && p.Stock <= 5).ToList();
+}
+
+@* ══════════════════════════════════════════════
+   PANEL: DASHBOARD / INICIO
+   ══════════════════════════════════════════════ *@
+<div class="panel active" id="panel-dashboard">
+    <div class="panel-header"><h3>INICIO</h3></div>
+    <div class="panel-full" style="padding:18px;position:relative;overflow:hidden;min-height:400px;">
+
+        @* ── LOGO ANIMADO ARRIBA VISIBLE ── *@
+        <div style="display:flex;justify-content:center;margin-bottom:22px;">
+            <div style="width:160px;height:160px;border-radius:50%;overflow:hidden;
+                border:3px solid rgba(212,160,23,0.5);
+                box-shadow:0 0 32px rgba(212,160,23,0.35);">
+                <video autoplay loop muted playsinline
+                    style="width:100%;height:100%;object-fit:cover;">
+                    <source src="~/videos/logo-animado.mp4" type="video/mp4" />
+                </video>
+            </div>
+        </div>
+
+        @* ── TARJETAS RESUMEN ── *@
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;">
+            <div style="background:#fff;border:1.5px solid #e8c840;border-radius:8px;padding:16px;
+                text-align:center;box-shadow:0 2px 8px rgba(184,134,11,0.1);">
+                <div style="font-size:28px;margin-bottom:6px;">📦</div>
+                <div style="font-size:26px;font-weight:800;color:#b8860b;">@misProductos.Count</div>
+                <div style="font-size:10px;font-weight:700;color:#7a5500;letter-spacing:0.5px;margin-top:4px;">MIS PRODUCTOS</div>
+            </div>
+            <div style="background:#fff;border:1.5px solid @(productosSinStock.Any() ? "#c0392b" : "#e8c840");
+                border-radius:8px;padding:16px;text-align:center;
+                box-shadow:0 2px 8px rgba(184,134,11,0.1);">
+                <div style="font-size:28px;margin-bottom:6px;">🚫</div>
+                <div style="font-size:26px;font-weight:800;color:@(productosSinStock.Any() ? "#c0392b" : "#b8860b");">@productosSinStock.Count</div>
+                <div style="font-size:10px;font-weight:700;color:#7a5500;letter-spacing:0.5px;margin-top:4px;">SIN STOCK</div>
+            </div>
+            <div style="background:#fff;border:1.5px solid @(productosStockBajo.Any() ? "#e67e22" : "#e8c840");
+                border-radius:8px;padding:16px;text-align:center;
+                box-shadow:0 2px 8px rgba(184,134,11,0.1);">
+                <div style="font-size:28px;margin-bottom:6px;">⚠️</div>
+                <div style="font-size:26px;font-weight:800;color:@(productosStockBajo.Any() ? "#e67e22" : "#b8860b");">@productosStockBajo.Count</div>
+                <div style="font-size:10px;font-weight:700;color:#7a5500;letter-spacing:0.5px;margin-top:4px;">STOCK BAJO</div>
+            </div>
+            <div style="background:#fff;border:1.5px solid #e8c840;border-radius:8px;padding:16px;
+                text-align:center;box-shadow:0 2px 8px rgba(184,134,11,0.1);">
+                <div style="font-size:28px;margin-bottom:6px;">🛒</div>
+                <div style="font-size:26px;font-weight:800;color:#2980b9;">@misCompras.Count</div>
+                <div style="font-size:10px;font-weight:700;color:#7a5500;letter-spacing:0.5px;margin-top:4px;">COMPRAS TOTALES</div>
+            </div>
+        </div>
+
+        @* ── ALERTAS DE STOCK ── *@
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+
+            @* Productos sin stock *@
+            <div style="background:#fff;border:1.5px solid @(productosSinStock.Any() ? "#c0392b" : "#e8c840");
+                border-radius:8px;padding:14px;box-shadow:0 2px 8px rgba(184,134,11,0.1);">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;
+                    border-bottom:1px solid #f0d080;padding-bottom:8px;">
+                    <span style="font-size:16px;">🚫</span>
+                    <span style="font-size:11px;font-weight:800;color:#5a3e00;letter-spacing:0.5px;">PRODUCTOS SIN STOCK</span>
+                    <span style="margin-left:auto;background:@(productosSinStock.Any() ? "#c0392b" : "#27ae60");
+                        color:#fff;border-radius:12px;padding:1px 8px;font-size:10px;font-weight:700;">
+                        @productosSinStock.Count
+                    </span>
+                </div>
+                @if (!productosSinStock.Any())
+                {
+                    <div style="text-align:center;color:#27ae60;font-size:11px;font-weight:700;padding:10px 0;">
+                        ✅ Todos tus productos tienen stock
+                    </div>
+                }
+                else
+                {
+                    <div style="max-height:200px;overflow-y:auto;">
+                        <table class="data-table" style="min-width:unset;">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th style="text-align:center;width:80px;">Stock</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var p in productosSinStock.OrderBy(p => p.Nombre))
+                                {
+                                    <tr>
+                                        <td style="font-weight:600;color:#2a1800;">@p.Nombre</td>
+                                        <td style="text-align:center;">
+                                            <span style="background:#c0392b;color:#fff;border-radius:4px;
+                                                padding:2px 8px;font-size:10px;font-weight:700;">
+                                                SIN STOCK
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+
+            @* Productos con stock bajo *@
+            <div style="background:#fff;border:1.5px solid @(productosStockBajo.Any() ? "#e67e22" : "#e8c840");
+                border-radius:8px;padding:14px;box-shadow:0 2px 8px rgba(184,134,11,0.1);">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;
+                    border-bottom:1px solid #f0d080;padding-bottom:8px;">
+                    <span style="font-size:16px;">⚠️</span>
+                    <span style="font-size:11px;font-weight:800;color:#5a3e00;letter-spacing:0.5px;">STOCK BAJO (≤ 5 unidades)</span>
+                    <span style="margin-left:auto;background:@(productosStockBajo.Any() ? "#e67e22" : "#27ae60");
+                        color:#fff;border-radius:12px;padding:1px 8px;font-size:10px;font-weight:700;">
+                        @productosStockBajo.Count
+                    </span>
+                </div>
+                @if (!productosStockBajo.Any())
+                {
+                    <div style="text-align:center;color:#27ae60;font-size:11px;font-weight:700;padding:10px 0;">
+                        ✅ Ningún producto con stock crítico
+                    </div>
+                }
+                else
+                {
+                    <div style="max-height:200px;overflow-y:auto;">
+                        <table class="data-table" style="min-width:unset;">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th style="text-align:center;width:80px;">Stock</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var p in productosStockBajo.OrderBy(p => p.Stock))
+                                {
+                                    var colorStock = p.Stock <= 2 ? "#c0392b" : "#e67e22";
+                                    <tr>
+                                        <td style="font-weight:600;color:#2a1800;">@p.Nombre</td>
+                                        <td style="text-align:center;">
+                                            <span style="background:@colorStock;color:#fff;border-radius:4px;
+                                                padding:2px 8px;font-size:10px;font-weight:700;">
+                                                @p.Stock ud.
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@* ══════════════════════════════════════════════
+   PANEL: MI PERFIL
+   ══════════════════════════════════════════════ *@
+<div class="panel" id="panel-perfil">
+    <div class="panel-header"><h3>MI PERFIL</h3></div>
+    <div class="panel-full" style="padding:14px;">
+        <div class="perfil-box">
+            <div class="perfil-section-title">Datos del Proveedor</div>
+            <div class="perfil-field"><label>CUIT:</label><input type="text" id="pf-cuit" value="@proveedor?.Cuit" readonly style="background:#f5e888;" /></div>
+            <div class="perfil-field"><label>Razón Social:</label><input type="text" id="pf-razon" value="@proveedor?.RazonSocial" /></div>
+            <div class="perfil-field"><label>Teléfono:</label><input type="text" id="pf-tel" value="@proveedor?.Telefono" /></div>
+            <div class="perfil-field"><label>Email:</label><input type="text" id="pf-email" value="@proveedor?.Email" /></div>
+            <div class="perfil-field"><label>Dirección:</label><input type="text" id="pf-dir" value="@proveedor?.Direccion" /></div>
+
+            <form asp-controller="Proveedor" asp-action="GuardarPerfil" method="post" id="form-prov-perfil">
+                <input type="hidden" name="Id" value="@proveedor?.Id" />
+                <input type="hidden" name="Cuit" value="@proveedor?.Cuit" />
+                <input type="hidden" name="RazonSocial" id="h-pf-razon" />
+                <input type="hidden" name="Telefono" id="h-pf-tel" />
+                <input type="hidden" name="Email" id="h-pf-email" />
+                <input type="hidden" name="Direccion" id="h-pf-dir" />
+            </form>
+
+            <div class="perfil-btns">
+                <button class="btn-pf-cambiar" onclick="abrirModalCambioPassProv()">Cambiar Contraseña</button>
+                <button class="btn-pf-guardar" onclick="guardarPerfilProv()">Guardar Cambios</button>
+                <button class="btn-pf-cancelar" onclick="cancelarPerfilProv()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ══════════════════════════════════════════════
+   PANEL: MIS PRODUCTOS
+   ══════════════════════════════════════════════ *@
+<div class="panel" id="panel-productos">
+    <div class="panel-header"><h3>MIS PRODUCTOS</h3></div>
+    <div class="panel-full" style="padding:14px;">
+        <div class="search-bar" style="margin-bottom:8px;">
+            <label>BUSCAR:</label>
+            <input type="text" id="search-mis-prod" oninput="filtrarMisProductos(this.value)" />
+            <button class="btn-search" onclick="filtrarMisProductos(document.getElementById('search-mis-prod').value)">BUSCAR</button>
+            <button class="btn-clear" onclick="document.getElementById('search-mis-prod').value='';filtrarMisProductos('')">LIMPIAR</button>
+        </div>
+        <div style="font-size:11px;color:#7a5500;margin-bottom:6px;font-weight:700;">
+            <span id="lbl-cant-prod">@misProductos.Count</span> producto(s) en lista
+        </div>
+        <div class="data-table-wrap">
+            <table class="data-table" id="tabla-mis-prod">
+                <thead>
+                    <tr><th>ID</th><th>Código</th><th>Nombre</th><th style="text-align:center">Perecedero</th><th>Vencimiento</th><th>Precio</th><th>Stock</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in misProductos)
+                    {
+                        <tr data-nom="@p.Nombre.ToLower()" data-cod="@p.CodigoBarra.ToLower()">
+                            <td>@p.Id</td>
+                            <td>@p.CodigoBarra</td>
+                            <td>@p.Nombre</td>
+                            <td style="text-align:center">@(p.EsPerecedero ? "✓" : "")</td>
+                            <td>@(p.FechaVencimiento?.ToString("dd/MM/yyyy") ?? "—")</td>
+                            <td>$@p.Precio.ToString("N2")</td>
+                            <td style="font-weight:700;color:@(p.Stock == 0 ? "#c0392b" : p.Stock <= 5 ? "#e67e22" : "inherit")">
+                                @p.Stock
+                            </td>
+                        </tr>
+                    }
+                    @if (!misProductos.Any())
+                    {
+                        <tr><td colspan="7" style="text-align:center;color:#aaa;padding:14px;">No tenés productos asignados.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+            <button class="btn-form-save" style="width:auto;padding:5px 16px;" onclick="actualizarMisProductos()">ACTUALIZAR LISTA</button>
+        </div>
+    </div>
+</div>
+
+@* ══════════════════════════════════════════════
+   PANEL: MI CATÁLOGO
+   ══════════════════════════════════════════════ *@
+<div class="panel" id="panel-catalogo">
+    <div class="panel-header"><h3>MI CATÁLOGO</h3></div>
+    <div class="panel-body">
+        <div class="panel-form-col">
+            <div class="form-box">
+                <div class="form-section-title">AGREGAR PRODUCTO</div>
+                <div class="perfil-field">
+                    <label>NOMBRE:</label>
+                    <input type="text" id="cat-nombre" />
+                </div>
+                <div class="perfil-field">
+                    <label>PRECIO:</label>
+                    <input type="number" id="cat-precio" step="0.01" min="0" />
+                </div>
+                <div class="perfil-field">
+                    <label>DESCRIPCIÓN:</label>
+                    <input type="text" id="cat-desc" />
+                </div>
+
+                <form asp-controller="Catalogo" asp-action="Agregar" method="post" id="form-cat-agregar">
+                    <input type="hidden" name="NombreProducto" id="h-cat-nombre" />
+                    <input type="hidden" name="Precio" id="h-cat-precio" />
+                    <input type="hidden" name="Descripcion" id="h-cat-desc" />
+                </form>
+                <form asp-controller="Catalogo" asp-action="Modificar" method="post" id="form-cat-modificar">
+                    <input type="hidden" name="Id" id="h-cat-edit-id" />
+                    <input type="hidden" name="NombreProducto" id="h-cat-edit-nombre" />
+                    <input type="hidden" name="Precio" id="h-cat-edit-precio" />
+                    <input type="hidden" name="Descripcion" id="h-cat-edit-desc" />
+                </form>
+                <form asp-controller="Catalogo" asp-action="Eliminar" method="post" id="form-cat-eliminar">
+                    <input type="hidden" name="id" id="h-cat-del-id" />
+                </form>
+
+                <button type="button" class="btn-form-save" id="btn-cat-guardar"
+                        onclick="catalogoGuardar()">AGREGAR</button>
+                <div class="btn-form-row">
+                    <button type="button" class="btn-form-del" onclick="catalogoEliminar()">ELIMINAR</button>
+                    <button type="button" class="btn-form-mod" onclick="catalogoModoEdicion()">MODIFICAR</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-table-col">
+            <div class="data-table-wrap">
+                <table class="data-table" id="tabla-catalogo">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Precio</th>
+                            <th>Descripción</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            var miCatalogo = ViewBag.MiCatalogo as List<ENTIDADES.CatalogoProveedor> ?? new List<ENTIDADES.CatalogoProveedor>();
+                        }
+                        @foreach (var item in miCatalogo)
+                        {
+                            <tr onclick="catalogoSeleccionar(this,'@item.Id','@Html.Raw(item.NombreProducto?.Replace("'","\\'") ?? "")','@item.Precio','@Html.Raw(item.Descripcion?.Replace("'","\\'") ?? "")')"
+                                data-id="@item.Id">
+                                <td>@item.NombreProducto</td>
+                                <td>$@item.Precio.ToString("N2")</td>
+                                <td>@(item.Descripcion ?? "—")</td>
+                                <td>
+                                    <span style="font-weight:700;color:@(item.Estado == "Aprobado" ? "#27ae60" : item.Estado == "Rechazado" ? "#c0392b" : "#e67e22")">
+                                        @item.Estado
+                                    </span>
+                                </td>
+                                <td>@item.FechaOferta.ToString("dd/MM/yyyy")</td>
+                            </tr>
+                        }
+                        @if (!miCatalogo.Any())
+                        {
+                            <tr><td colspan="5" style="text-align:center;color:#aaa;padding:14px;">No tenés productos en tu catálogo todavía.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div style="margin-top:8px;font-size:11px;color:#7a5500;">
+                <strong>Pendiente:</strong> esperando aprobación del administrador &nbsp;|&nbsp;
+                <strong style="color:#27ae60">Aprobado:</strong> producto agregado al sistema &nbsp;|&nbsp;
+                <strong style="color:#c0392b">Rechazado:</strong> no fue aceptado
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ══════════════════════════════════════════════
+   PANEL: HISTORIAL DE COMPRAS
+   ══════════════════════════════════════════════ *@
+<div class="panel" id="panel-historial">
+    <div class="panel-header"><h3>HISTORIAL DE COMPRAS</h3></div>
+    <div class="panel-body">
+        <div class="panel-form-col">
+            <div class="form-box" style="display:flex;flex-direction:column;gap:6px;">
+                <div class="form-section-title">ACCIONES</div>
+                <div style="background:#fff8dc;border:1px solid #e8c840;border-radius:4px;padding:8px;text-align:center;margin-bottom:4px;">
+                    <div style="font-size:10px;color:#7a5500;font-weight:700;">TOTAL</div>
+                    <div id="hist-total" style="font-size:16px;font-weight:700;color:#5a3e00;">$0.00</div>
+                    <div style="font-size:10px;color:#7a5500;margin-top:2px;">Cantidad: <span id="hist-cant">0</span></div>
+                    <div style="font-size:10px;color:#7a5500;">Promedio: $<span id="hist-prom">0.00</span></div>
+                </div>
+                <button class="btn-form-save" style="background:#2980b9;border-color:#1a5276;color:#fff"
+                        id="btn-hist-detalle" onclick="histVerDetalle()" disabled>VER DETALLE</button>
+            </div>
+        </div>
+        <div class="panel-table-col">
+            <div class="search-bar" style="flex-wrap:wrap;gap:5px;">
+                <label class="vt-lbl">DESDE</label>
+                <input type="date" id="hist-desde" class="vt-date" />
+                <label class="vt-lbl">HASTA</label>
+                <input type="date" id="hist-hasta" class="vt-date" />
+                <button class="btn-search" onclick="histFiltrar()">FILTRAR</button>
+                <button class="btn-clear" onclick="histLimpiar()">LIMPIAR</button>
+            </div>
+            <div class="data-table-wrap" style="margin-top:6px;">
+                <table class="data-table" id="tabla-historial">
+                    <thead><tr><th>ID</th><th>Fecha</th><th>N° Factura</th><th>Forma de Pago</th><th>Total</th></tr></thead>
+                    <tbody>
+                        @foreach (var c in misCompras)
+                        {
+                            <tr onclick="histSeleccionar(this)"
+                                data-id="@c.Id"
+                                data-fecha="@c.FechaCompra.ToString("dd/MM/yyyy HH:mm")"
+                                data-factura="@c.NumeroFactura"
+                                data-formapago="@c.FormaPago"
+                                data-total="@c.Total.ToString("N2")"
+                                data-detalles="@Html.Raw(System.Text.Json.JsonSerializer.Serialize(c.Detalles.Select(d => new { nombre = d.ProductoNombre, cantidad = d.Cantidad, precio = d.PrecioUnitario.ToString("N2"), subtotal = d.Subtotal.ToString("N2") })).Replace("\"","&quot;"))">
+                                <td>@c.Id</td>
+                                <td>@c.FechaCompra.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@c.NumeroFactura</td>
+                                <td>@c.FormaPago</td>
+                                <td>$@c.Total.ToString("N2")</td>
+                            </tr>
+                        }
+                        @if (!misCompras.Any())
+                        {
+                            <tr><td colspan="5" style="text-align:center;color:#aaa;padding:14px;">Sin compras registradas.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ══════════════════════════════════════════════
+   PANEL: REPORTES
+   ══════════════════════════════════════════════ *@
+<div class="panel" id="panel-reportes">
+    <div class="panel-header"><h3>REPORTES</h3></div>
+    <div class="panel-full" style="padding:14px;">
+        <div class="prov-stats-row">
+            <div class="prov-stat-card">
+                <div class="prov-stat-lbl">Total Compras:</div>
+                <div class="prov-stat-val">$@misCompras.Sum(c => c.Total).ToString("N2")</div>
+            </div>
+            <div class="prov-stat-card">
+                <div class="prov-stat-lbl">Total Productos:</div>
+                <div class="prov-stat-val">@misProductos.Count</div>
+            </div>
+            <div class="prov-stat-card">
+                <div class="prov-stat-lbl">Pedidos Recientes:</div>
+                <div class="prov-stat-val">@misCompras.Count(c => c.FechaCompra >= DateTime.Now.AddDays(-30))</div>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:14px;margin-top:14px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:280px;">
+                <div style="font-size:12px;font-weight:700;color:#5a3e00;margin-bottom:6px;border-bottom:1px solid #d4a017;padding-bottom:4px;">Compras Recientes</div>
+                <div class="data-table-wrap">
+                    <table class="data-table">
+                        <thead><tr><th>Fecha</th><th>Total</th><th>FormaPago</th></tr></thead>
+                        <tbody>
+                            @foreach (var c in misCompras.Take(5))
+                            {
+                                <tr>
+                                    <td>@c.FechaCompra.ToString("dd/MM/yyyy")</td>
+                                    <td>$@c.Total.ToString("N2")</td>
+                                    <td>@c.FormaPago</td>
+                                </tr>
+                            }
+                            @if (!misCompras.Any())
+                            {
+                                <tr><td colspan="3" style="text-align:center;color:#aaa;padding:10px;">Sin compras registradas</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div style="flex:1;min-width:280px;">
+                <div style="font-size:12px;font-weight:700;color:#5a3e00;margin-bottom:6px;border-bottom:1px solid #d4a017;padding-bottom:4px;">Productos Más Comprados</div>
+                <div class="data-table-wrap">
+                    @{
+                        var productosVendidos = misCompras
+                            .SelectMany(c => c.Detalles)
+                            .GroupBy(d => d.ProductoNombre)
+                            .Select(g => new { Producto = g.Key, Cantidad = g.Sum(d => d.Cantidad) })
+                            .OrderByDescending(x => x.Cantidad)
+                            .Take(5).ToList();
+                    }
+                    <table class="data-table">
+                        <thead><tr><th>Producto</th><th>Cantidad</th></tr></thead>
+                        <tbody>
+                            @foreach (var pv in productosVendidos)
+                            {
+                                <tr><td>@pv.Producto</td><td>@pv.Cantidad unidades</td></tr>
+                            }
+                            @if (!productosVendidos.Any())
+                            {
+                                <tr><td colspan="2" style="text-align:center;color:#aaa;padding:10px;">Sin datos</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top:18px;">
+            <div style="font-size:12px;font-weight:700;color:#5a3e00;margin-bottom:8px;border-bottom:1px solid #d4a017;padding-bottom:4px;">Gráficos</div>
+            <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:10px;flex-wrap:wrap;">
+                <div class="filtro-field"><label>DESDE</label><input type="date" id="rep-desde" class="vt-date" /></div>
+                <div class="filtro-field"><label>HASTA</label><input type="date" id="rep-hasta" class="vt-date" /></div>
+                <button class="btn-search" onclick="reporteActualizar()">ACTUALIZAR</button>
+                <button class="btn-form-save" style="width:auto;padding:5px 16px;" onclick="reporteGenerarPDF()">↓ GENERAR PDF</button>
+            </div>
+            <div style="background:#fff;border:1px solid #e8c840;border-radius:4px;padding:10px;max-width:700px;">
+                <div style="font-size:11px;font-weight:700;color:#5a3e00;margin-bottom:6px;">Productos Más Comprados</div>
+                <canvas id="rep-chart-productos" height="80"></canvas>
+                <div style="font-size:11px;font-weight:700;color:#5a3e00;margin:14px 0 6px;">Compras por Forma de Pago</div>
+                <canvas id="rep-chart-pago" height="70"></canvas>
+                <div id="rep-empty" style="display:none;text-align:center;color:#aaa;font-size:12px;padding:20px;">Sin datos para el período seleccionado</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ── MODAL DETALLE HISTORIAL ── *@
+<div id="modal-hist-det" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fffbe6;border:2px solid #b8860b;border-radius:8px;width:500px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;">
+        <div style="background:#d4a017;padding:8px 14px;border-radius:6px 6px 0 0;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:13px;font-weight:700;color:#3a2500;">Detalle de Compra</span>
+            <button onclick="cerrarModalHistDet()" style="background:#8B6508;border:none;color:#f5d060;border-radius:50%;width:22px;height:22px;cursor:pointer;font-weight:700;">✕</button>
+        </div>
+        <div id="modal-hist-det-body" style="padding:14px;overflow-y:auto;flex:1;font-size:12px;color:#2a1800;white-space:pre-wrap;font-family:'Courier New',monospace;line-height:1.6;background:#fff;"></div>
+        <div style="padding:8px 14px;text-align:right;border-top:1px solid #e8c840;">
+            <button class="btn-pf-cancelar" onclick="cerrarModalHistDet()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+@* ── MODAL CAMBIO CONTRASEÑA ── *@
+<div id="modal-cambio-pass-prov" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fffbe6;border:2px solid #b8860b;border-radius:8px;width:420px;max-width:95vw;">
+        <div style="background:#d4a017;padding:8px 14px;border-radius:6px 6px 0 0;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:13px;font-weight:700;color:#3a2500;">Cambiar Contraseña</span>
+            <button onclick="cerrarModalCambioPassProv()" style="background:#8B6508;border:none;color:#f5d060;border-radius:50%;width:22px;height:22px;cursor:pointer;font-weight:700;">✕</button>
+        </div>
+        <div style="padding:14px;">
+            <div class="perfil-field"><label>Contraseña Actual:</label><input type="password" id="prov-pass-actual" /></div>
+            <div class="perfil-field"><label>Nueva Contraseña:</label><input type="password" id="prov-pass-nueva" /></div>
+            <div class="perfil-field"><label>Confirmar Nueva Contraseña:</label><input type="password" id="prov-pass-conf" /></div>
+            <form asp-controller="Proveedor" asp-action="CambiarContrasena" method="post" id="form-prov-cambio-pass">
+                <input type="hidden" name="contrasenaActual" id="h-prov-pass-actual" />
+                <input type="hidden" name="nuevaContrasena" id="h-prov-pass-nueva" />
+                <input type="hidden" name="confirmarContrasena" id="h-prov-pass-conf-h" />
+            </form>
+            <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
+                <button class="btn-pf-cancelar" onclick="cerrarModalCambioPassProv()">Cancelar</button>
+                <button class="btn-pf-guardar" onclick="guardarCambioPassProv()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+var todasLasCompras = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(misCompras.Select(c => new {
+    id = c.Id,
+    fecha = c.FechaCompra.ToString("yyyy-MM-dd"),
+    formaPago = c.FormaPago,
+    total = c.Total,
+    detalles = c.Detalles.Select(d => new { nombre = d.ProductoNombre, cantidad = d.Cantidad, subtotal = d.Subtotal })
+})));
+
+var chartProductos = null, chartPago = null;
+var histFilaSeleccionada = null;
+
+// ── MI CATÁLOGO ──
+var catalogoSeleccionadoId = null;
+var catalogoModoModificacion = false;
+
+function catalogoSeleccionar(row, id, nombre, precio, desc) {
+    document.querySelectorAll('#tabla-catalogo tbody tr').forEach(r => r.classList.remove('selected'));
+    row.classList.add('selected');
+    catalogoSeleccionadoId = id;
+    document.getElementById('cat-nombre').value = nombre;
+    document.getElementById('cat-precio').value = precio;
+    document.getElementById('cat-desc').value = desc;
+}
+
+function catalogoModoEdicion() {
+    if (!catalogoSeleccionadoId) { alert('Seleccione un producto del catálogo.'); return; }
+    catalogoModoModificacion = true;
+    document.getElementById('btn-cat-guardar').textContent = 'ACTUALIZAR';
+    document.getElementById('btn-cat-guardar').style.background = '#27ae60';
+}
+
+function catalogoGuardar() {
+    var nom = document.getElementById('cat-nombre').value.trim();
+    var precio = document.getElementById('cat-precio').value;
+    if (!nom) { alert('Ingrese el nombre del producto.'); return; }
+    if (!precio || parseFloat(precio) <= 0) { alert('Ingrese un precio válido.'); return; }
+    if (catalogoModoModificacion) {
+        if (!catalogoSeleccionadoId) { alert('Seleccione un producto.'); return; }
+        document.getElementById('h-cat-edit-id').value = catalogoSeleccionadoId;
+        document.getElementById('h-cat-edit-nombre').value = nom;
+        document.getElementById('h-cat-edit-precio').value = precio;
+        document.getElementById('h-cat-edit-desc').value = document.getElementById('cat-desc').value;
+        document.getElementById('form-cat-modificar').submit();
+    } else {
+        document.getElementById('h-cat-nombre').value = nom;
+        document.getElementById('h-cat-precio').value = precio;
+        document.getElementById('h-cat-desc').value = document.getElementById('cat-desc').value;
+        document.getElementById('form-cat-agregar').submit();
+    }
+}
+
+function catalogoEliminar() {
+    if (!catalogoSeleccionadoId) { alert('Seleccione un producto del catálogo.'); return; }
+    if (!confirm('¿Eliminar este producto del catálogo?')) return;
+    document.getElementById('h-cat-del-id').value = catalogoSeleccionadoId;
+    document.getElementById('form-cat-eliminar').submit();
+}
+
+// ── PERFIL ──
+function guardarPerfilProv() {
+    var razon = document.getElementById('pf-razon').value.trim();
+    if (!razon) { alert('La razón social es obligatoria.'); return; }
+    document.getElementById('h-pf-razon').value = razon;
+    document.getElementById('h-pf-tel').value = document.getElementById('pf-tel').value;
+    document.getElementById('h-pf-email').value = document.getElementById('pf-email').value;
+    document.getElementById('h-pf-dir').value = document.getElementById('pf-dir').value;
+    document.getElementById('form-prov-perfil').submit();
+}
+function cancelarPerfilProv() {
+    document.getElementById('pf-razon').value = '@Html.Raw(proveedor?.RazonSocial?.Replace("'", "\\'") ?? "")';
+    document.getElementById('pf-tel').value = '@proveedor?.Telefono';
+    document.getElementById('pf-email').value = '@proveedor?.Email';
+    document.getElementById('pf-dir').value = '@Html.Raw(proveedor?.Direccion?.Replace("'", "\\'") ?? "")';
+}
+
+// ── CAMBIO CONTRASEÑA ──
+function abrirModalCambioPassProv() { document.getElementById('modal-cambio-pass-prov').style.display = 'flex'; }
+function cerrarModalCambioPassProv() {
+    document.getElementById('modal-cambio-pass-prov').style.display = 'none';
+    ['prov-pass-actual','prov-pass-nueva','prov-pass-conf'].forEach(function(id){ document.getElementById(id).value=''; });
+}
+function guardarCambioPassProv() {
+    var actual = document.getElementById('prov-pass-actual').value;
+    var nueva = document.getElementById('prov-pass-nueva').value;
+    var conf = document.getElementById('prov-pass-conf').value;
+    if (!actual || !nueva || !conf) { alert('Complete todos los campos.'); return; }
+    if (nueva !== conf) { alert('Las contraseñas no coinciden.'); return; }
+    document.getElementById('h-prov-pass-actual').value = actual;
+    document.getElementById('h-prov-pass-nueva').value = nueva;
+    document.getElementById('h-prov-pass-conf-h').value = conf;
+    document.getElementById('form-prov-cambio-pass').submit();
+}
+
+// ── MIS PRODUCTOS ──
+function filtrarMisProductos(val) {
+    var q = val.toLowerCase();
+    var visible = 0;
+    document.querySelectorAll('#tabla-mis-prod tbody tr').forEach(function(row) {
+        var show = !q || (row.dataset.nom||'').includes(q) || (row.dataset.cod||'').includes(q);
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+    document.getElementById('lbl-cant-prod').textContent = visible;
+}
+
+function actualizarMisProductos() {
+    sessionStorage.setItem('provPanel', 'productos');
+    window.location.reload();
+}
+
+// ── HISTORIAL ──
+function histSeleccionar(row) {
+    document.querySelectorAll('#tabla-historial tbody tr').forEach(r => r.classList.remove('selected'));
+    row.classList.add('selected');
+    histFilaSeleccionada = row;
+    document.getElementById('btn-hist-detalle').disabled = false;
+}
+function histFiltrar() {
+    var desde = document.getElementById('hist-desde').value;
+    var hasta = document.getElementById('hist-hasta').value;
+    document.querySelectorAll('#tabla-historial tbody tr').forEach(function(row) {
+        if (!row.dataset.fecha) return;
+        var p = row.dataset.fecha.split(' ')[0].split('/');
+        var f = p[2] + '-' + p[1] + '-' + p[0];
+        row.style.display = ((!desde || f >= desde) && (!hasta || f <= hasta)) ? '' : 'none';
+    });
+    histActualizarTotales();
+}
+function histLimpiar() {
+    document.getElementById('hist-desde').value = '';
+    document.getElementById('hist-hasta').value = '';
+    document.querySelectorAll('#tabla-historial tbody tr').forEach(r => r.style.display = '');
+    histFilaSeleccionada = null;
+    document.getElementById('btn-hist-detalle').disabled = true;
+    histActualizarTotales();
+}
+function histActualizarTotales() {
+    var total = 0, cant = 0;
+    document.querySelectorAll('#tabla-historial tbody tr').forEach(function(row) {
+        if (row.style.display === 'none' || !row.dataset.total) return;
+        total += parseFloat(row.dataset.total.replace(',','')) || 0;
+        cant++;
+    });
+    document.getElementById('hist-total').textContent = '$' + total.toFixed(2);
+    document.getElementById('hist-cant').textContent = cant;
+    document.getElementById('hist-prom').textContent = cant > 0 ? (total/cant).toFixed(2) : '0.00';
+}
+function histVerDetalle() {
+    if (!histFilaSeleccionada) return;
+    var r = histFilaSeleccionada;
+    var detalles = JSON.parse(r.dataset.detalles.replace(/&quot;/g, '"'));
+    var txt = 'DETALLE DE COMPRA #' + r.dataset.id +
+        '\nFecha:         ' + r.dataset.fecha +
+        '\nN° Factura:    ' + r.dataset.factura +
+        '\nForma de Pago: ' + r.dataset.formapago +
+        '\n\nPRODUCTOS:\n----------------------------------------------\n';
+    detalles.forEach(function(d) {
+        txt += '- ' + d.nombre + '\n  Cantidad: ' + d.cantidad + '\n  Precio: $' + d.precio + '\n  Subtotal: $' + d.subtotal + '\n\n';
+    });
+    txt += '----------------------------------------------\nTOTAL: $' + r.dataset.total;
+    document.getElementById('modal-hist-det-body').textContent = txt;
+    document.getElementById('modal-hist-det').style.display = 'flex';
+}
+function cerrarModalHistDet() { document.getElementById('modal-hist-det').style.display = 'none'; }
+
+// ── REPORTES ──
+function reporteActualizar() {
+    var desde = document.getElementById('rep-desde').value;
+    var hasta = document.getElementById('rep-hasta').value;
+    var filtradas = todasLasCompras.filter(function(c) {
+        return (!desde || c.fecha >= desde) && (!hasta || c.fecha <= hasta);
+    });
+    document.getElementById('rep-empty').style.display = filtradas.length ? 'none' : 'block';
+    if (!filtradas.length) {
+        if (chartProductos) { chartProductos.destroy(); chartProductos = null; }
+        if (chartPago) { chartPago.destroy(); chartPago = null; }
+        return;
+    }
+    var prodMap = {};
+    filtradas.forEach(function(c) {
+        (c.detalles||[]).forEach(function(d) {
+            if (!prodMap[d.nombre]) prodMap[d.nombre] = 0;
+            prodMap[d.nombre] += d.cantidad;
+        });
+    });
+    var prodSorted = Object.keys(prodMap).map(k=>({nombre:k,cantidad:prodMap[k]})).sort((a,b)=>b.cantidad-a.cantidad).slice(0,8);
+    if (chartProductos) chartProductos.destroy();
+    chartProductos = new Chart(document.getElementById('rep-chart-productos').getContext('2d'), {
+        type: 'bar',
+        data: { labels: prodSorted.map(p=>p.nombre), datasets: [{ label: 'Cantidad', data: prodSorted.map(p=>p.cantidad), backgroundColor: 'rgba(70,130,180,0.75)', borderWidth:1, borderRadius:3 }] },
+        options: { responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+    });
+    var pagoMap = {};
+    filtradas.forEach(function(c) {
+        if (!pagoMap[c.formaPago]) pagoMap[c.formaPago] = 0;
+        pagoMap[c.formaPago] += parseFloat(c.total) || 0;
+    });
+    var pagoLabels = Object.keys(pagoMap);
+    if (chartPago) chartPago.destroy();
+    chartPago = new Chart(document.getElementById('rep-chart-pago').getContext('2d'), {
+        type: 'bar',
+        data: { labels: pagoLabels, datasets: [{ label: 'Total ($)', data: pagoLabels.map(k=>pagoMap[k]), backgroundColor: ['rgba(65,105,225,0.75)','rgba(46,139,87,0.75)','rgba(178,34,34,0.75)'], borderWidth:1, borderRadius:3 }] },
+        options: { responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{callback:v=>'$'+v.toLocaleString()}}} }
+    });
+}
+function reporteGenerarPDF() {
+    var desde = document.getElementById('rep-desde').value;
+    var hasta = document.getElementById('rep-hasta').value;
+    if (!desde || !hasta) { alert('Seleccione las fechas primero.'); return; }
+    window.open('/Reporte/GenerarReporteCompras?desde=' + desde + '&hasta=' + hasta, '_blank');
+}
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', function() {
+    var hoy = new Date(), hace30 = new Date();
+    hace30.setDate(hoy.getDate() - 30);
+    function fmt(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+    ['rep-desde','hist-desde'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=fmt(hace30); });
+    ['rep-hasta','hist-hasta'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=fmt(hoy); });
+    histActualizarTotales();
+    setTimeout(reporteActualizar, 200);
+
+    // Restaurar panel desde sessionStorage (usado por ACTUALIZAR LISTA)
+    var panelSession = sessionStorage.getItem('provPanel');
+    if (panelSession) {
+        sessionStorage.removeItem('provPanel');
+        showPanelProv(panelSession, null);
+        return;
+    }
+
+    // Restaurar panel activo después de un POST
+    var activePanel = '@(ViewBag.ActivePanel ?? "dashboard")';
+    if (activePanel && activePanel !== 'dashboard') {
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        var el = document.getElementById('panel-' + activePanel);
+        if (el) el.classList.add('active');
+        document.querySelectorAll('.nav-btn').forEach(function(btn) {
+            if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes("'" + activePanel + "'"))
+                btn.classList.add('active');
+        });
+    }
+});
+</script>
+}

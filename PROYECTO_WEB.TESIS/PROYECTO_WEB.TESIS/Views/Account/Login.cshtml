@@ -1,0 +1,250 @@
+﻿@model PROYECTO_WEB.TESIS.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Iniciar Sesión"; Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Fresco Market - Login</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        /* ── VIDEO DE FONDO ── */
+        .video-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            overflow: hidden;
+            background: #3a2500;
+        }
+        .video-bg video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.85;
+        }
+
+        /* Capa oscura encima del video para que el form se lea bien */
+        .video-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
+            background: linear-gradient(
+                135deg,
+                rgba(30, 15, 0, 0.55) 0%,
+                rgba(90, 60, 0, 0.35) 50%,
+                rgba(30, 15, 0, 0.55) 100%
+            );
+        }
+
+        /* ── CARD GLASSMORPHISM ── */
+        .login-card {
+            position: relative;
+            z-index: 2;
+            background: rgba(255, 248, 220, 0.18);
+            border: 1.5px solid rgba(255, 215, 0, 0.45);
+            border-radius: 18px;
+            width: 380px;
+            padding: 36px 32px 30px;
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ── LOGO PEQUEÑO ARRIBA (opcional, para identidad) ── */
+        .logo-mini {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2.5px solid rgba(255, 215, 0, 0.7);
+            box-shadow:
+                0 0 24px rgba(212, 160, 23, 0.7),
+                0 0 48px rgba(212, 160, 23, 0.3);
+            margin-bottom: 14px;
+            background: #3a2500;
+            flex-shrink: 0;
+        }
+        .logo-mini video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .login-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #fff8dc;
+            letter-spacing: 1.5px;
+            margin-bottom: 3px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+        .login-subtitle {
+            font-size: 10px;
+            color: #f5d060;
+            font-weight: 600;
+            margin-bottom: 26px;
+            letter-spacing: 1px;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        }
+
+        .alert-error {
+            width: 100%;
+            background: rgba(192, 57, 43, 0.25);
+            border: 1px solid rgba(192, 57, 43, 0.6);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: #ffd7d7;
+            font-size: 12px;
+            margin-bottom: 14px;
+            backdrop-filter: blur(4px);
+        }
+        .alert-success {
+            width: 100%;
+            background: rgba(39, 174, 96, 0.2);
+            border: 1px solid rgba(39, 174, 96, 0.5);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: #d5f5e3;
+            font-size: 12px;
+            margin-bottom: 14px;
+        }
+
+        .form-group {
+            width: 100%;
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 10px;
+            font-weight: 700;
+            color: #f5d060;
+            margin-bottom: 5px;
+            letter-spacing: 0.8px;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        .form-group input {
+            width: 100%;
+            border: 1.5px solid rgba(255, 215, 0, 0.4);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            background: rgba(255, 250, 220, 0.15);
+            color: #fff8dc;
+            outline: none;
+            transition: border-color 0.2s, background 0.2s;
+            backdrop-filter: blur(6px);
+        }
+        .form-group input::placeholder { color: rgba(245, 208, 96, 0.5); }
+        .form-group input:focus {
+            border-color: rgba(255, 215, 0, 0.85);
+            background: rgba(255, 250, 220, 0.25);
+        }
+
+        .btn-login {
+            width: 100%;
+            background: linear-gradient(135deg, #d4a017 0%, #f0c030 50%, #d4a017 100%);
+            color: #2a1800;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 0;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            letter-spacing: 1.5px;
+            margin-top: 4px;
+            transition: filter 0.15s, transform 0.1s;
+            box-shadow: 0 4px 16px rgba(212, 160, 23, 0.4);
+        }
+        .btn-login:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+        }
+        .btn-login:active { transform: translateY(0); }
+
+        .login-links {
+            margin-top: 18px;
+            display: flex;
+            gap: 14px;
+            font-size: 11px;
+        }
+        .login-links a {
+            color: rgba(245, 208, 96, 0.85);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.15s;
+        }
+        .login-links a:hover { color: #f5d060; text-decoration: underline; }
+        .divider { color: rgba(245, 208, 96, 0.4); }
+    </style>
+</head>
+<body>
+
+    <!-- VIDEO DE FONDO -->
+    <div class="video-bg">
+        <video autoplay loop muted playsinline>
+            <source src="~/videos/logo-animado.mp4" type="video/mp4" />
+        </video>
+    </div>
+    <div class="video-overlay"></div>
+
+    <!-- CARD -->
+    <div class="login-card">
+
+        <!-- Logo circular pequeño arriba -->
+        <div class="logo-mini">
+            <video autoplay loop muted playsinline>
+                <source src="~/videos/logo-animado.mp4" type="video/mp4" />
+            </video>
+        </div>
+
+        <div class="login-title">🛒 Fresco Market</div>
+        <div class="login-subtitle">SISTEMA DE GESTIÓN DE MINIMARKET</div>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert-error">@Html.ValidationSummary(false)</div>
+        }
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert-success">@TempData["Success"]</div>
+        }
+
+        <form asp-action="Login" method="post" style="width:100%">
+            <div class="form-group">
+                <label asp-for="Usuario">USUARIO</label>
+                <input asp-for="Usuario" placeholder="Ingrese su usuario" autocomplete="username" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Contraseña">CONTRASEÑA</label>
+                <input asp-for="Contraseña" type="password" placeholder="Ingrese su contraseña" autocomplete="current-password" />
+            </div>
+            <button type="submit" class="btn-login">INGRESAR</button>
+        </form>
+
+        <div class="login-links">
+            <a asp-action="Register">Registrarse</a>
+            <span class="divider">|</span>
+            <a asp-action="RecuperarClave">Olvidé mi contraseña</a>
+        </div>
+    </div>
+
+</body>
+</html>

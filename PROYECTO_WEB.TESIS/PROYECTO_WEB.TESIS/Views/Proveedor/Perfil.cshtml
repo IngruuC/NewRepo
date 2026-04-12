@@ -1,0 +1,82 @@
+﻿@{
+    ViewData["Title"] = "Mi Perfil - Proveedor";
+    Layout = "~/Views/Shared/_LayoutProveedor.cshtml";
+    var proveedor = ViewBag.Proveedor as ENTIDADES.Proveedor;
+}
+
+<div class="panel-header">
+    <h3>MI PERFIL</h3>
+</div>
+<div class="panel-body-content">
+    <div style="max-width:540px;">
+        <div style="background:#fff;border:1px solid #c8a000;border-radius:6px;padding:14px;margin-bottom:14px;">
+            <div style="font-size:11px;font-weight:700;color:#7a5500;border-bottom:1px solid #e8c840;padding-bottom:5px;margin-bottom:10px;">
+                DATOS DEL PROVEEDOR
+            </div>
+            <form asp-controller="Proveedor" asp-action="GuardarPerfil" method="post">
+                <input type="hidden" name="Id" value="@proveedor?.Id" />
+                <div class="cli-form-grid">
+                    <div class="form-field">
+                        <label>CUIT:</label>
+                        <input type="text" value="@proveedor?.Cuit" readonly />
+                    </div>
+                    <div class="form-field">
+                        <label>RAZÓN SOCIAL:</label>
+                        <input type="text" name="RazonSocial" value="@proveedor?.RazonSocial" />
+                    </div>
+                    <div class="form-field">
+                        <label>TELÉFONO:</label>
+                        <input type="text" name="Telefono" value="@proveedor?.Telefono" />
+                    </div>
+                    <div class="form-field">
+                        <label>EMAIL:</label>
+                        <input type="email" name="Email" value="@proveedor?.Email" />
+                    </div>
+                    <div class="form-field cli-form-full">
+                        <label>DIRECCIÓN:</label>
+                        <input type="text" name="Direccion" value="@proveedor?.Direccion" />
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:10px;">
+                    <button type="submit" class="btn-dorado">GUARDAR CAMBIOS</button>
+                    <a href="@Url.Action("Index", "Proveedor")" class="btn-gris">CANCELAR</a>
+                </div>
+            </form>
+        </div>
+
+        <div style="background:#fff;border:1px solid #c8a000;border-radius:6px;padding:14px;">
+            <div style="font-size:11px;font-weight:700;color:#7a5500;border-bottom:1px solid #e8c840;padding-bottom:5px;margin-bottom:10px;">
+                CAMBIAR CONTRASEÑA
+            </div>
+            <form asp-controller="Proveedor" asp-action="CambiarContrasena" method="post">
+                <div class="form-field">
+                    <label>CONTRASEÑA ACTUAL:</label>
+                    <input type="password" name="contrasenaActual" style="max-width:300px;" />
+                </div>
+                <div class="form-field">
+                    <label>NUEVA CONTRASEÑA:</label>
+                    <input type="password" name="nuevaContrasena" id="prov-nueva-pass" style="max-width:300px;" />
+                </div>
+                <div class="form-field">
+                    <label>CONFIRMAR CONTRASEÑA:</label>
+                    <input type="password" name="confirmarContrasena" id="prov-confirmar-pass" style="max-width:300px;" />
+                </div>
+                <div id="prov-pass-error" style="color:#c0392b;font-size:11px;margin-bottom:6px;display:none;">Las contraseñas no coinciden.</div>
+                <button type="button" class="btn-azul" onclick="submitProvPass()">CAMBIAR CONTRASEÑA</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function submitProvPass() {
+            var n = document.getElementById('prov-nueva-pass').value;
+            var c = document.getElementById('prov-confirmar-pass').value;
+            var err = document.getElementById('prov-pass-error');
+            if (n !== c) { err.style.display = 'block'; return; }
+            err.style.display = 'none';
+            document.getElementById('prov-nueva-pass').closest('form').submit();
+        }
+    </script>
+}
