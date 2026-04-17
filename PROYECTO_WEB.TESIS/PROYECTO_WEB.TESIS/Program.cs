@@ -33,6 +33,8 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.ForwardLimit = null;
 });
 
+builder.Services.AddScoped<PROYECTO_WEB.TESIS.Services.AfipService>();
+
 var app = builder.Build();
 
 // DEBE IR PRIMERO, antes que todo

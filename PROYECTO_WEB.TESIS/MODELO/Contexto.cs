@@ -32,6 +32,7 @@ namespace MODELO
         public DbSet<Permiso> Permisos { get; set; }
         public DbSet<Proveedor> Proveedores { get; set; }
         public DbSet<Compra> Compras { get; set; }
+        public DbSet<FacturaAfip> FacturasAfip { get; set; }
 
         public DbSet<LogActividad> LogActividad { get; set; }
         public DbSet<DetalleCompra> DetallesCompra { get; set; }
@@ -258,8 +259,21 @@ namespace MODELO
                     j => j.HasOne<Grupo>().WithMany().HasForeignKey("GrupoId")
                 );
 
-            // ── MUCHOS A MUCHOS: Grupo <-> Accion ────────────────────────────
-            modelBuilder.Entity<Grupo>()
+            //FACTURA AFIP
+            modelBuilder.Entity<FacturaAfip>(entity => {
+                       entity.ToTable("FacturasAfip");
+                        entity.HasKey(e => e.Id);
+                        entity.Property(e => e.ImporteTotal).HasColumnType("numeric(18,2)");
+                        entity.Property(e => e.ImporteNeto).HasColumnType("numeric(18,2)");
+                        entity.Property(e => e.ImporteIVA).HasColumnType("numeric(18,2)");
+                        entity.HasOne(e => e.Venta)
+                              .WithMany()
+                              .HasForeignKey(e => e.VentaId)
+                              .OnDelete(DeleteBehavior.Restrict);
+                    });
+
+                // ── MUCHOS A MUCHOS: Grupo <-> Accion ────────────────────────────
+                modelBuilder.Entity<Grupo>()
                 .HasMany(g => g.Acciones)
                 .WithMany(a => a.Grupos)
                 .UsingEntity<Dictionary<string, object>>(
