@@ -70,6 +70,15 @@ namespace CONTROLADORA
                     _ => totalOriginal
                 };
 
+                // Descuento adicional 5% para suscriptores activos
+                var tieneSuscripcion = contexto.SuscripcionesCliente
+                    .Any(s => s.ClienteId == nuevaVenta.ClienteId
+                           && s.Estado == "Activa"
+                           && s.FechaVencimiento > DateTime.Now);
+
+                if (tieneSuscripcion)
+                    nuevaVenta.Total = Math.Round(nuevaVenta.Total * 0.95m, 2);
+
                 contexto.Ventas.Add(nuevaVenta);
                 contexto.SaveChanges();
                 transaction.Commit();

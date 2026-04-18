@@ -1430,6 +1430,181 @@
     </div>
 </div>
 
+@* ══════════════════════════════════════════════
+   PANEL: SUSCRIPCIONES
+   Pegar en Admin/Index.cshtml ANTES de los MODALES
+   ══════════════════════════════════════════════ *@
+<div class="panel" id="panel-suscripciones">
+    <div class="panel-header">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style="flex-shrink:0">
+            <circle cx="9" cy="9" r="7.5" stroke="#3a2500" stroke-width="1.3" fill="none" />
+            <path d="M9 4v5l3 1.5" stroke="#3a2500" stroke-width="1.2" stroke-linecap="round" />
+        </svg>
+        <h3>SUSCRIPCIONES</h3>
+        <span id="badge-pagos-pendientes" style="display:none;margin-left:8px;
+        background:#c0392b;color:#fff;border-radius:12px;padding:1px 8px;
+        font-size:10px;font-weight:700;">0</span>
+    </div>
+    <div class="panel-full" style="padding:14px;">
+
+        @* ── TABS ── *@
+        <div style="display:flex;gap:0;margin-bottom:14px;border-bottom:2px solid #d4a017;">
+            <button onclick="suscTabCambiar('suscripciones')" id="tab-suscripciones"
+                    style="background:#d4a017;color:#2a1800;border:none;padding:7px 18px;
+                font-size:11px;font-weight:700;cursor:pointer;border-radius:4px 4px 0 0;">
+                SUSCRIPTORES
+            </button>
+            <button onclick="suscTabCambiar('pagos')" id="tab-pagos"
+                    style="background:#f5e888;color:#7a5500;border:none;padding:7px 18px;
+                font-size:11px;font-weight:700;cursor:pointer;border-radius:4px 4px 0 0;">
+                PAGOS / SOLICITUDES
+            </button>
+            <button onclick="suscTabCambiar('activar')" id="tab-activar"
+                    style="background:#f5e888;color:#7a5500;border:none;padding:7px 18px;
+                font-size:11px;font-weight:700;cursor:pointer;border-radius:4px 4px 0 0;">
+                ACTIVAR MANUAL
+            </button>
+        </div>
+
+        @* ── TAB: SUSCRIPTORES ── *@
+        <div id="susc-tab-suscripciones">
+            <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap;">
+                <button onclick="suscCargarDatos()" class="btn-search" style="padding:5px 14px;">↺ ACTUALIZAR</button>
+                <input type="text" id="susc-buscar" placeholder="Buscar cliente..."
+                       oninput="suscRenderTabla()"
+                       style="border:1px solid #c8a000;border-radius:3px;padding:5px 8px;font-size:11px;background:#fffef0;width:200px;" />
+                <select id="susc-filtro-estado" onchange="suscRenderTabla()"
+                        style="border:1px solid #c8a000;border-radius:3px;padding:5px 7px;font-size:11px;background:#fffef0;">
+                    <option value="">Todos</option>
+                    <option value="Activa">Activas</option>
+                    <option value="Vencida">Vencidas</option>
+                    <option value="Cancelada">Canceladas</option>
+                </select>
+            </div>
+            <div class="data-table-wrap">
+                <table class="data-table" id="tabla-suscripciones">
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Plan</th>
+                            <th>Inicio</th>
+                            <th>Vencimiento</th>
+                            <th>Días Rest.</th>
+                            <th>Estado</th>
+                            <th>Origen</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="susc-tbody">
+                        <tr><td colspan="8" style="text-align:center;color:#aaa;padding:14px;">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        @* ── TAB: PAGOS ── *@
+        <div id="susc-tab-pagos" style="display:none;">
+            <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
+                <button onclick="suscCargarDatos()" class="btn-search" style="padding:5px 14px;">↺ ACTUALIZAR</button>
+                <select id="pagos-filtro-estado" onchange="pagosRenderTabla()"
+                        style="border:1px solid #c8a000;border-radius:3px;padding:5px 7px;font-size:11px;background:#fffef0;">
+                    <option value="Pendiente">Pendientes</option>
+                    <option value="">Todos</option>
+                    <option value="Aprobado">Aprobados</option>
+                    <option value="Rechazado">Rechazados</option>
+                </select>
+            </div>
+            <div class="data-table-wrap">
+                <table class="data-table" id="tabla-pagos-susc">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Plan</th>
+                            <th>Monto</th>
+                            <th>Solicitud</th>
+                            <th>Aprobación</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pagos-tbody">
+                        <tr><td colspan="8" style="text-align:center;color:#aaa;padding:14px;">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        @* ── TAB: ACTIVAR MANUAL ── *@
+        <div id="susc-tab-activar" style="display:none;">
+            <div style="background:#fff;border:1.5px solid #e8c840;border-radius:8px;padding:16px;max-width:420px;">
+                <div style="font-size:11px;font-weight:800;color:#5a3e00;border-bottom:1px solid #f0d080;padding-bottom:8px;margin-bottom:12px;">
+                    ACTIVAR SUSCRIPCIÓN MANUALMENTE
+                </div>
+                <div class="form-field">
+                    <label>CLIENTE:</label>
+                    <select id="susc-manual-cliente"
+                            style="width:100%;border:1px solid #c8a000;border-radius:3px;padding:5px 7px;font-size:11px;background:#fffef0;">
+                        <option value="">— Seleccione cliente —</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>PLAN:</label>
+                    <select id="susc-manual-plan" onchange="suscMostrarInfoPlan(this)"
+                            style="width:100%;border:1px solid #c8a000;border-radius:3px;padding:5px 7px;font-size:11px;background:#fffef0;">
+                        <option value="">— Seleccione plan —</option>
+                    </select>
+                </div>
+                <div id="susc-manual-info" style="display:none;background:#fffbe6;border:1px solid #e8c840;
+                border-radius:4px;padding:8px;margin:8px 0;font-size:11px;color:#5a3e00;"></div>
+                <button onclick="suscActivarManual()"
+                        style="width:100%;background:#d4a017;color:#2a1800;border:1.5px solid #8B6508;
+                    border-radius:5px;padding:8px 0;font-size:12px;font-weight:700;cursor:pointer;margin-top:8px;">
+                    ✓ ACTIVAR SUSCRIPCIÓN
+                </button>
+                <div style="margin-top:12px;padding:8px;background:#fff8dc;border:1px solid #e8c840;
+                    border-radius:4px;font-size:10px;color:#7a5500;line-height:1.6;">
+                    👑 dorada = suscripción pagada por el cliente<br>
+                    👑 gris = activada manualmente por el Admin
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@* ── MODAL RECHAZAR PAGO  ── *@
+<div id="modal-rechazar-pago" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+    background:rgba(0,0,0,0.55);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fffbe6;border:2px solid #b8860b;border-radius:8px;width:400px;max-width:95vw;">
+        <div style="background:#c0392b;padding:8px 14px;border-radius:6px 6px 0 0;
+            display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:13px;font-weight:700;color:#fff;">RECHAZAR PAGO</span>
+            <button onclick="cerrarModalRechazar()"
+                    style="background:rgba(0,0,0,0.3);border:none;color:#fff;border-radius:50%;
+                width:22px;height:22px;cursor:pointer;font-weight:700;">
+                ✕
+            </button>
+        </div>
+        <div style="padding:14px;">
+            <div class="form-field">
+                <label>MOTIVO (opcional):</label>
+                <input type="text" id="rechazo-observacion" placeholder="Ej: Pago no verificado"
+                       style="width:100%;border:1px solid #c8a000;border-radius:3px;padding:6px 8px;font-size:12px;background:#fffef0;" />
+            </div>
+            <input type="hidden" id="rechazo-pago-id" />
+            <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
+                <button onclick="cerrarModalRechazar()" class="btn-cancelar" style="padding:5px 16px;font-size:11px;">CANCELAR</button>
+                <button onclick="suscRechazarPago()"
+                        style="background:#c0392b;color:#fff;border:1.5px solid #96281b;border-radius:4px;
+                    padding:5px 20px;font-size:11px;font-weight:700;cursor:pointer;">
+                    RECHAZAR
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 @* ══════════════════════════════════════════════
    MODALES
@@ -2046,9 +2221,299 @@
         dashActualizarReloj();
         setInterval(dashActualizarReloj, 1000);
 
+
+        // ════════════════════════════════════════════════
+// SUSCRIPCIONES ADMIN — 
+// ════════════════════════════════════════════════
+
+var _suscData = { suscripciones: [], pagos: [], planes: [], clientes: [] };
+var _suscPanelCargado = false;
+
+// Interceptar showPanel para cargar al abrir el panel
+(function() {
+    var _origShowPanelSusc = window.showPanel;
+    window.showPanel = function(name, btn) {
+        _origShowPanelSusc(name, btn);
+        if (name === 'suscripciones' && !_suscPanelCargado) {
+            _suscPanelCargado = true;
+            suscCargarDatos();
+        }
+        if (name === 'suscripciones') {
+            suscCargarDatos();
+        }
+    };
+})();
+
+function suscCargarDatos() {
+    fetch('/Suscripcion/ObtenerDatosAdmin')
+    .then(r => r.json())
+    .then(function(data) {
+        if (!data.ok) return;
+        _suscData = data;
+
+        // Badge de pendientes en el header del panel
+        var badge = document.getElementById('badge-pagos-pendientes');
+        if (badge) {
+            if (data.pendientes > 0) {
+                badge.textContent = data.pendientes + ' pendiente' + (data.pendientes > 1 ? 's' : '');
+                badge.style.display = 'inline';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        // Llenar selects de activar manual
+        var selCliente = document.getElementById('susc-manual-cliente');
+        if (selCliente) {
+            selCliente.innerHTML = '<option value="">— Seleccione cliente —</option>';
+            data.clientes.forEach(function(c) {
+                selCliente.innerHTML += '<option value="' + c.id + '">' + c.nombre + '</option>';
+            });
+        }
+
+        var selPlan = document.getElementById('susc-manual-plan');
+        if (selPlan) {
+            selPlan.innerHTML = '<option value="">— Seleccione plan —</option>';
+            data.planes.forEach(function(p) {
+                selPlan.innerHTML += '<option value="' + p.id
+                    + '" data-meses="' + p.duracionMeses
+                    + '" data-precio="' + p.precio + '">'
+                    + p.nombre + ' — $' + parseFloat(p.precio).toFixed(2)
+                    + ' (' + p.duracionMeses + ' mes/es)</option>';
+            });
+        }
+
+        suscRenderTabla();
+        pagosRenderTabla();
+    })
+    .catch(function() {
+        var tbody = document.getElementById('susc-tbody');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#c0392b;padding:14px;">Error al cargar datos.</td></tr>';
+    });
+}
+
+// ── TABS ──
+function suscTabCambiar(tab) {
+    ['suscripciones','pagos','activar'].forEach(function(t) {
+        var content = document.getElementById('susc-tab-' + t);
+        var btn = document.getElementById('tab-' + t);
+        if (content) content.style.display = t === tab ? '' : 'none';
+        if (btn) {
+            btn.style.background = t === tab ? '#d4a017' : '#f5e888';
+            btn.style.color = t === tab ? '#2a1800' : '#7a5500';
+        }
+    });
+}
+
+// ── RENDER SUSCRIPCIONES ──
+function suscRenderTabla() {
+    var tbody = document.getElementById('susc-tbody');
+    if (!tbody) return;
+
+    var filtroEstado = document.getElementById('susc-filtro-estado')?.value || '';
+    var filtroBuscar = (document.getElementById('susc-buscar')?.value || '').toLowerCase();
+    var data = (_suscData.suscripciones || []).slice();
+
+    if (filtroEstado) data = data.filter(function(s) { return s.estado === filtroEstado; });
+    if (filtroBuscar) data = data.filter(function(s) { return (s.clienteNombre||'').toLowerCase().includes(filtroBuscar); });
+
+    if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#aaa;padding:14px;">Sin suscripciones para mostrar.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = '';
+    data.forEach(function(s) {
+        var colorEstado = s.estado === 'Activa' ? '#27ae60' : s.estado === 'Vencida' ? '#e67e22' : '#c0392b';
+        // 👑 dorada = Pago | 👑 gris = Admin
+        var corona = s.origen === 'Pago'
+            ? '<span title="Por pago del cliente" style="font-size:14px;">👑</span>'
+            : '<span title="Activada por Admin" style="font-size:14px;filter:grayscale(1) opacity(0.6);">👑</span>';
+        var colorDias = s.diasRestantes > 7 ? '#27ae60' : '#c0392b';
+        var acciones = s.estado === 'Activa'
+            ? '<button onclick="suscDesactivar(' + s.clienteId + ')" class="btn-form-del" style="padding:2px 8px;font-size:10px;">CANCELAR</button>'
+            : '<span style="color:#aaa;font-size:10px;">—</span>';
+
+        tbody.innerHTML += '<tr>'
+            + '<td style="font-weight:600;">' + s.clienteNombre + '</td>'
+            + '<td>' + s.planNombre + '</td>'
+            + '<td>' + s.fechaInicio + '</td>'
+            + '<td>' + s.fechaVencimiento + '</td>'
+            + '<td style="text-align:center;font-weight:700;color:' + colorDias + ';">'
+            +   (s.estado === 'Activa' ? s.diasRestantes + ' días' : '—') + '</td>'
+            + '<td><span style="font-weight:700;color:' + colorEstado + ';">' + s.estado + '</span></td>'
+            + '<td style="text-align:center;">' + corona + '</td>'
+            + '<td>' + acciones + '</td>'
+            + '</tr>';
+    });
+}
+
+// ── RENDER PAGOS ──
+function pagosRenderTabla() {
+    var tbody = document.getElementById('pagos-tbody');
+    if (!tbody) return;
+
+    var filtroEstado = document.getElementById('pagos-filtro-estado')?.value || '';
+    var data = (_suscData.pagos || []).slice();
+    if (filtroEstado) data = data.filter(function(p) { return p.estado === filtroEstado; });
+
+    if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#aaa;padding:14px;">Sin pagos para mostrar.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = '';
+    data.forEach(function(p) {
+        var colorEstado = p.estado === 'Aprobado' ? '#27ae60' : p.estado === 'Rechazado' ? '#c0392b' : '#e67e22';
+        var acciones = p.estado === 'Pendiente'
+            ? '<button onclick="suscAprobarPago(' + p.id + ')" class="btn-form-save" style="padding:2px 8px;font-size:10px;width:auto;margin-right:3px;">✓ APROBAR</button>'
+            + '<button onclick="abrirModalRechazar(' + p.id + ')" class="btn-form-del" style="padding:2px 8px;font-size:10px;">✗ RECHAZAR</button>'
+            : '<span style="font-size:10px;color:' + colorEstado + ';font-weight:700;">' + p.estado + '</span>'
+              + (p.observacion ? '<br><span style="font-size:9px;color:#888;">' + p.observacion + '</span>' : '');
+
+        tbody.innerHTML += '<tr>'
+            + '<td style="text-align:center;color:#7a5500;font-weight:700;">#' + p.id + '</td>'
+            + '<td style="font-weight:600;">' + p.clienteNombre + '</td>'
+            + '<td>' + p.planNombre + '</td>'
+            + '<td style="font-weight:700;color:#27ae60;">$' + parseFloat(p.monto).toFixed(2) + '</td>'
+            + '<td>' + p.fechaSolicitud + '</td>'
+            + '<td>' + p.fechaAprobacion + '</td>'
+            + '<td><span style="font-weight:700;color:' + colorEstado + ';">' + p.estado + '</span></td>'
+            + '<td>' + acciones + '</td>'
+            + '</tr>';
+    });
+}
+
+// ── APROBAR PAGO ──
+function suscAprobarPago(pagoId) {
+    if (!confirm('¿Aprobar este pago y activar la suscripción?')) return;
+    var params = new URLSearchParams();
+    params.append('pagoId', pagoId);
+    fetch('/Suscripcion/AprobarPago', { method: 'POST', body: params })
+    .then(r => r.json())
+    .then(function(data) {
+        if (data.ok) {
+            suscMostrarToast('✓ ' + data.mensaje, 'toast-success');
+            _suscPanelCargado = false;
+            suscCargarDatos();
+        } else {
+            alert('Error: ' + data.mensaje);
+        }
+    })
+    .catch(function() { alert('Error de conexión.'); });
+}
+
+// ── MODAL RECHAZAR ──
+function abrirModalRechazar(pagoId) {
+    document.getElementById('rechazo-pago-id').value = pagoId;
+    document.getElementById('rechazo-observacion').value = '';
+    document.getElementById('modal-rechazar-pago').style.display = 'flex';
+}
+function cerrarModalRechazar() {
+    document.getElementById('modal-rechazar-pago').style.display = 'none';
+}
+function suscRechazarPago() {
+    var pagoId = document.getElementById('rechazo-pago-id').value;
+    var obs = document.getElementById('rechazo-observacion').value;
+    var params = new URLSearchParams();
+    params.append('pagoId', pagoId);
+    params.append('observacion', obs);
+    fetch('/Suscripcion/RechazarPago', { method: 'POST', body: params })
+    .then(r => r.json())
+    .then(function(data) {
+        cerrarModalRechazar();
+        if (data.ok) {
+            suscMostrarToast('✓ ' + data.mensaje, 'toast-success');
+            suscCargarDatos();
+        } else {
+            alert('Error: ' + data.mensaje);
+        }
+    })
+    .catch(function() { cerrarModalRechazar(); alert('Error de conexión.'); });
+}
+
+// Cerrar modal al click afuera
+document.getElementById('modal-rechazar-pago')?.addEventListener('click', function(e) {
+    if (e.target === this) cerrarModalRechazar();
+});
+
+// ── DESACTIVAR ──
+function suscDesactivar(clienteId) {
+    if (!confirm('¿Cancelar la suscripción activa de este cliente?')) return;
+    var params = new URLSearchParams();
+    params.append('clienteId', clienteId);
+    fetch('/Suscripcion/DesactivarManual', { method: 'POST', body: params })
+    .then(r => r.json())
+    .then(function(data) {
+        if (data.ok) {
+            suscMostrarToast('✓ ' + data.mensaje, 'toast-success');
+            suscCargarDatos();
+        } else {
+            alert('Error: ' + data.mensaje);
+        }
+    })
+    .catch(function() { alert('Error de conexión.'); });
+}
+
+// ── INFO DEL PLAN SELECCIONADO ──
+function suscMostrarInfoPlan(sel) {
+    var info = document.getElementById('susc-manual-info');
+    var opt = sel.options[sel.selectedIndex];
+    if (!opt.value || !info) return;
+    info.innerHTML = '📅 Duración: <strong>' + opt.dataset.meses + ' mes/es</strong>'
+        + ' &nbsp;|&nbsp; 💰 Precio: <strong>$' + parseFloat(opt.dataset.precio).toFixed(2) + '</strong>';
+    info.style.display = 'block';
+}
+
+// ── ACTIVAR MANUAL ──
+function suscActivarManual() {
+    var clienteId = document.getElementById('susc-manual-cliente').value;
+    var planId = document.getElementById('susc-manual-plan').value;
+    if (!clienteId) { alert('Seleccione un cliente.'); return; }
+    if (!planId) { alert('Seleccione un plan.'); return; }
+
+    var selCliente = document.getElementById('susc-manual-cliente');
+    var nombreCliente = selCliente.options[selCliente.selectedIndex].text;
+    var selPlan = document.getElementById('susc-manual-plan');
+    var nombrePlan = selPlan.options[selPlan.selectedIndex].text;
+
+    if (!confirm('¿Activar suscripción manual?\n\nCliente: ' + nombreCliente + '\nPlan: ' + nombrePlan)) return;
+
+    var params = new URLSearchParams();
+    params.append('clienteId', clienteId);
+    params.append('planId', planId);
+    fetch('/Suscripcion/ActivarManual', { method: 'POST', body: params })
+    .then(r => r.json())
+    .then(function(data) {
+        if (data.ok) {
+            suscMostrarToast('✓ ' + data.mensaje, 'toast-success');
+            document.getElementById('susc-manual-cliente').value = '';
+            document.getElementById('susc-manual-plan').value = '';
+            document.getElementById('susc-manual-info').style.display = 'none';
+            suscCargarDatos();
+            suscTabCambiar('suscripciones');
+        } else {
+            alert('Error: ' + data.mensaje);
+        }
+    })
+    .catch(function() { alert('Error de conexión.'); });
+}
+
+// ── TOAST ──
+function suscMostrarToast(msg, cls) {
+    var t = document.createElement('div');
+    t.className = 'toast-msg ' + cls;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(function() {
+        t.classList.add('toast-hide');
+        setTimeout(function() { t.remove(); }, 400);
+    }, 3000);
+}
+
+
         //AFIP
-        
-        
+       
         var afipVentaSeleccionada = null;
         var afipYaTieneFactura = false;
 

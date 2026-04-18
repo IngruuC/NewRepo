@@ -178,6 +178,51 @@
 </div>
 
 @* ══════════════════════════════════════════════
+   INSTRUCCIONES PANEL SUSCRIPCIÓN — CLIENTE
+   ══════════════════════════════════════════════ *@
+
+@* ── PANEL SUSCRIPCIÓN (pegar en PanelCliente/Index.cshtml) ── *@
+<div class="panel" id="panel-suscripcion">
+    <div class="panel-header"><h3>MI SUSCRIPCIÓN</h3></div>
+    <div class="panel-full" style="padding:14px;">
+
+        <div id="susc-estado-box" style="margin-bottom:16px;">
+            <div style="text-align:center;color:#aaa;font-size:12px;padding:20px;">Cargando...</div>
+        </div>
+
+        <div id="susc-planes-box" style="margin-bottom:16px;">
+            <div style="font-size:12px;font-weight:700;color:#5a3e00;
+                border-bottom:1px solid #d4a017;padding-bottom:6px;margin-bottom:10px;">
+                PLANES DISPONIBLES
+            </div>
+            <div id="susc-planes-grid"
+                 style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;">
+                <div style="text-align:center;color:#aaa;padding:20px;">Cargando planes...</div>
+            </div>
+        </div>
+
+        <div id="susc-historial-box">
+            <div style="font-size:12px;font-weight:700;color:#5a3e00;
+                border-bottom:1px solid #d4a017;padding-bottom:6px;margin-bottom:10px;">
+                HISTORIAL DE PAGOS
+            </div>
+            <div class="data-table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Plan</th><th>Monto</th><th>Solicitud</th><th>Aprobación</th><th>Estado</th></tr>
+                    </thead>
+                    <tbody id="susc-historial-tbody">
+                        <tr><td colspan="5" style="text-align:center;color:#aaa;padding:14px;">Sin historial.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+@* ══════════════════════════════════════════════
    PANEL: FAVORITOS
    ══════════════════════════════════════════════ *@
 <div class="panel" id="panel-favoritos">
@@ -236,11 +281,17 @@
         </div>
         <div style="padding:18px;">
             <div style="font-size:12px;font-weight:700;color:#5a3e00;margin-bottom:10px;">Seleccione forma de pago:</div>
-            <select id="sel-forma-pago" class="seg-fselect" style="width:100%;margin-bottom:16px;">
+            <select id="sel-forma-pago" class="seg-fselect" style="width:100%;margin-bottom:16px;"
+                    onchange="actualizarInfoPago()">
                 <option value="Efectivo">Efectivo (15% desc.)</option>
                 <option value="Tarjeta de Crédito">Tarjeta de Crédito (10% rec.)</option>
                 <option value="Tarjeta de Débito">Tarjeta de Débito</option>
             </select>
+            <div id="susc-descuento-info" style="display:none;background:#eafaf1;border:1px solid #27ae60;
+                border-radius:4px;padding:8px;font-size:11px;color:#1e8449;font-weight:700;margin-top:6px;">
+                👑 Descuento suscriptor 5% aplicado
+            </div>
+            <div id="pago-precio-desglose" style="font-size:11px;color:#7a5500;margin-top:6px;"></div>
             <form asp-controller="PanelCliente" asp-action="RealizarCompra" method="post" id="form-venta-cliente">
                 <input type="hidden" name="ClienteId" id="h-venta-cliente-id" value="@cliente?.Id" />
                 <input type="hidden" name="FormaPago" id="h-venta-forma-pago" />
@@ -359,6 +410,159 @@
                 card.style.display = (!q || (card.dataset.nom || '').includes(q)) ? '' : 'none';
             });
         }
+        // ════════════════════════════════════════════════
+// SUSCRIPCIÓN CLIENTE — 
+// ════════════════════════════════════════════════
+
+// Interceptar showPanelCliente para cargar al abrir el panel
+(function() {
+    var _origShowPanelSuscCliente = window.showPanelCliente;
+    window.showPanelCliente = function(name, btn) {
+        _origShowPanelSuscCliente(name, btn);
+        if (name === 'suscripcion') {
+            suscClienteCargar();
+        }
+    };
+})();
+
+// Al cargar la página: verificar si tiene suscripción activa para la coronita
+document.addEventListener('DOMContentLoaded', function() {
+    suscClienteCargar();
+});
+
+function suscClienteCargar() {
+    fetch('/Suscripcion/MiSuscripcion')
+    .then(r => r.json())
+    .then(function(data) {
+        if (!data.ok) return;
+
+        // Coronita en topbar
+        var corona = document.getElementById('topbar-corona');
+        if (corona) {
+            corona.style.display = data.tieneSuscripcion ? 'inline' : 'none';
+        }
+
+        suscClienteRenderEstado(data);
+        suscClienteRenderPlanes(data);
+        suscClienteRenderHistorial(data);
+    })
+    .catch(function() {});
+}
+
+function suscClienteRenderEstado(data) {
+    var box = document.getElementById('susc-estado-box');
+    if (!box) return;
+
+    if (!data.tieneSuscripcion) {
+        box.innerHTML =
+            '<div style="background:#fff;border:1.5px solid #e8c840;border-radius:8px;padding:16px;text-align:center;">'
+            + '<div style="font-size:32px;margin-bottom:8px;">🔓</div>'
+            + '<div style="font-size:13px;font-weight:700;color:#5a3e00;margin-bottom:6px;">No tenés suscripción activa</div>'
+            + '<div style="font-size:11px;color:#7a5500;">Elegí un plan y solicitá tu suscripción.</div>'
+            + '</div>';
+        return;
+    }
+
+    var s = data.suscripcion;
+    var corona = s.origen === 'Pago' ? '👑' : '<span style="filter:grayscale(1) opacity(0.6)">👑</span>';
+    var colorDias = s.diasRestantes > 7 ? '#fff' : '#ffd7d7';
+    var alertaDias = s.diasRestantes <= 7
+        ? '<div style="background:#fdecea;border:1px solid #c0392b;border-radius:4px;padding:8px;font-size:11px;color:#c0392b;font-weight:700;margin-top:10px;">'
+          + '⚠️ Tu suscripción vence en ' + s.diasRestantes + ' días. ¡Renovála eligiendo un plan!</div>'
+        : '';
+
+    box.innerHTML =
+        '<div style="background:linear-gradient(135deg,#27ae60 0%,#1e8449 100%);border-radius:8px;'
+        + 'padding:16px 20px;color:#fff;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">'
+        + '<div style="font-size:36px;">' + corona + '</div>'
+        + '<div style="flex:1;">'
+        + '<div style="font-size:16px;font-weight:800;letter-spacing:0.5px;">SUSCRIPCIÓN ACTIVA</div>'
+        + '<div style="font-size:13px;margin-top:4px;opacity:0.9;">Plan: <strong>' + s.planNombre + '</strong></div>'
+        + '<div style="font-size:11px;margin-top:2px;opacity:0.8;">Desde ' + s.fechaInicio + ' hasta ' + s.fechaVencimiento + '</div>'
+        + '</div>'
+        + '<div style="text-align:center;background:rgba(0,0,0,0.15);border-radius:8px;padding:8px 16px;">'
+        + '<div style="font-size:28px;font-weight:800;color:' + colorDias + ';">' + s.diasRestantes + '</div>'
+        + '<div style="font-size:10px;font-weight:700;opacity:0.85;">DÍAS RESTANTES</div>'
+        + '</div>'
+        + '</div>'
+        + alertaDias;
+}
+
+function suscClienteRenderPlanes(data) {
+    var grid = document.getElementById('susc-planes-grid');
+    if (!grid || !data.planes || !data.planes.length) return;
+
+    grid.innerHTML = '';
+    data.planes.forEach(function(p) {
+        var desc = p.descripcion
+            ? '<div style="font-size:10px;color:#7a5500;margin:2px 0 4px;">' + p.descripcion + '</div>'
+            : '';
+
+        grid.innerHTML +=
+            '<div style="background:#fff;border:1.5px solid #c8a000;border-radius:8px;'
+            + 'padding:14px;display:flex;flex-direction:column;gap:4px;text-align:center;'
+            + 'transition:box-shadow 0.12s,transform 0.1s;" '
+            + 'onmouseover="this.style.boxShadow=\'0 3px 10px rgba(184,134,11,0.25)\';this.style.transform=\'translateY(-2px)\'" '
+            + 'onmouseout="this.style.boxShadow=\'\';this.style.transform=\'\'">'
+            + '<div style="font-size:13px;font-weight:800;color:#3a2500;">' + p.nombre + '</div>'
+            + desc
+            + '<div style="font-size:22px;font-weight:700;color:#27ae60;margin:4px 0;">'
+            + '$' + parseFloat(p.precio).toFixed(2) + '</div>'
+            + '<div style="font-size:10px;color:#7a5500;">' + p.duracionMeses + ' mes/es</div>'
+            + '<button onclick="suscClienteSolicitar(' + p.id + ', \'' + p.nombre.replace(/'/g, "\\'") + '\')"'
+            + ' style="background:#d4a017;color:#2a1800;border:1.5px solid #8B6508;border-radius:4px;'
+            + 'padding:6px 0;font-size:10px;font-weight:700;cursor:pointer;margin-top:6px;">'
+            + 'SOLICITAR</button>'
+            + '</div>';
+    });
+}
+
+function suscClienteRenderHistorial(data) {
+    var tbody = document.getElementById('susc-historial-tbody');
+    if (!tbody) return;
+
+    if (!data.historial || !data.historial.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#aaa;padding:14px;">Sin historial.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = '';
+    data.historial.forEach(function(p) {
+        var colorEstado = p.estado === 'Aprobado' ? '#27ae60' : p.estado === 'Rechazado' ? '#c0392b' : '#e67e22';
+        tbody.innerHTML += '<tr>'
+            + '<td>' + p.planNombre + '</td>'
+            + '<td style="font-weight:700;color:#27ae60;">$' + parseFloat(p.monto).toFixed(2) + '</td>'
+            + '<td>' + p.fechaSolicitud + '</td>'
+            + '<td>' + p.fechaAprobacion + '</td>'
+            + '<td>'
+            + '<span style="font-weight:700;color:' + colorEstado + ';">' + p.estado + '</span>'
+            + (p.observacion ? '<br><span style="font-size:9px;color:#888;">' + p.observacion + '</span>' : '')
+            + '</td>'
+            + '</tr>';
+    });
+}
+
+function suscClienteSolicitar(planId, nombrePlan) {
+    if (!confirm('¿Solicitar la suscripción al plan "' + nombrePlan + '"?\n\nEl administrador revisará y aprobará tu solicitud.')) return;
+
+    var params = new URLSearchParams();
+    params.append('planId', planId);
+    fetch('/Suscripcion/Solicitar', { method: 'POST', body: params })
+    .then(r => r.json())
+    .then(function(data) {
+        if (data.ok) {
+            var t = document.createElement('div');
+            t.className = 'toast-msg toast-success';
+            t.textContent = '✓ ' + data.mensaje;
+            document.body.appendChild(t);
+            setTimeout(function() { t.classList.add('toast-hide'); setTimeout(function() { t.remove(); }, 400); }, 3000);
+            suscClienteCargar();
+        } else {
+            alert(data.mensaje);
+        }
+    })
+    .catch(function() { alert('Error de conexión.'); });
+}
 
         // ── CARRITO ──
         function carritoAgregarProducto(id, nombre, precio, stock) {
@@ -410,11 +614,56 @@
             if (!confirm('¿Vaciar el carrito?')) return;
             carritoItems = []; carritoRenderTabla(); carritoActualizarBadge();
         }
-        function abrirModalFormaPago() {
+                function abrirModalFormaPago() {
             if (!carritoItems.length) return;
-            document.getElementById('modal-forma-pago').style.display = 'flex';
+            // Verificar suscripción al abrir el modal
+            fetch('/Suscripcion/MiSuscripcion')
+            .then(r => r.json())
+            .then(function(data) {
+                window._clienteTieneSusc = data.ok && data.tieneSuscripcion;
+                actualizarInfoPago();
+                document.getElementById('modal-forma-pago').style.display = 'flex';
+            })
+            .catch(function() {
+                window._clienteTieneSusc = false;
+                actualizarInfoPago();
+                document.getElementById('modal-forma-pago').style.display = 'flex';
+            });
         }
         function cerrarModalFormaPago() { document.getElementById('modal-forma-pago').style.display = 'none'; }
+                function actualizarInfoPago() {
+            var fp = document.getElementById('sel-forma-pago').value;
+            var base = carritoItems.reduce(function(s,i){
+                return s + parseFloat(i.precio) * i.cantidad;
+            }, 0);
+
+            var totalFP = fp === 'Efectivo' ? base * 0.85
+                        : fp === 'Tarjeta de Crédito' ? base * 1.10
+                        : base;
+
+            var totalFinal = window._clienteTieneSusc ? totalFP * 0.95 : totalFP;
+
+            var desglose = document.getElementById('pago-precio-desglose');
+            var suscInfo = document.getElementById('susc-descuento-info');
+
+            if (desglose) {
+                var txt = '';
+                if (fp === 'Efectivo')
+                    txt += '💰 Descuento efectivo 15%: -$' + (base * 0.15).toFixed(2) + '<br>';
+                else if (fp === 'Tarjeta de Crédito')
+                    txt += '💳 Recargo tarjeta 10%: +$' + (base * 0.10).toFixed(2) + '<br>';
+
+                if (window._clienteTieneSusc)
+                    txt += '👑 Descuento suscriptor 5%: -$' + (totalFP * 0.05).toFixed(2) + '<br>';
+
+                txt += '<strong>Total a pagar: $' + totalFinal.toFixed(2) + '</strong>';
+                desglose.innerHTML = txt;
+                desglose.style.display = 'block';
+            }
+
+            if (suscInfo)
+                suscInfo.style.display = window._clienteTieneSusc ? 'block' : 'none';
+        }
         function finalizarCompra() {
             var formaPago = document.getElementById('sel-forma-pago').value;
             document.getElementById('h-venta-forma-pago').value = formaPago;

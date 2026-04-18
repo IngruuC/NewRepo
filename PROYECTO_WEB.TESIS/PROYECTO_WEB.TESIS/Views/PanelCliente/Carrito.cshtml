@@ -166,6 +166,7 @@
             else info.textContent = 'Total: $' + final.toFixed(2);
         }
 
+
         function finalizarCompra() {
             var fp = document.getElementById('sel-forma-pago').value;
             var carrito = JSON.parse(sessionStorage.getItem('carrito') || '[]');

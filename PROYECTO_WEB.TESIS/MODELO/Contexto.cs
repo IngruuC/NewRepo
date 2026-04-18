@@ -42,6 +42,10 @@ namespace MODELO
         public DbSet<Favorito> Favoritos { get; set; }
         public DbSet<Promocion> Promociones { get; set; }
 
+        public DbSet<PlanSuscripcion> PlanesSuscripcion { get; set; }
+        public DbSet<SuscripcionCliente> SuscripcionesCliente { get; set; }
+        public DbSet<PagoSuscripcion> PagosSuscripcion { get; set; }
+
         public DbSet<CatalogoProveedor> CatalogoProveedores { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -258,6 +262,44 @@ namespace MODELO
                     j => j.HasOne<Permiso>().WithMany().HasForeignKey("PermisoId"),
                     j => j.HasOne<Grupo>().WithMany().HasForeignKey("GrupoId")
                 );
+
+            // PlanesSuscripcion
+            modelBuilder.Entity<PlanSuscripcion>(e => {
+                e.ToTable("PlanesSuscripcion");
+                e.HasKey(x => x.Id);
+                e.Property(x => x.Nombre).IsRequired().HasMaxLength(50);
+                e.Property(x => x.Precio).HasColumnType("decimal(10,2)");
+            });
+
+            // SuscripcionesCliente
+            modelBuilder.Entity<SuscripcionCliente>(e => {
+                e.ToTable("SuscripcionesCliente");
+                e.HasKey(x => x.Id);
+                e.Property(x => x.Estado).HasMaxLength(20);
+                e.Property(x => x.Origen).HasMaxLength(20);
+                e.HasOne(x => x.Cliente)
+                    .WithMany()
+                    .HasForeignKey(x => x.ClienteId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.Plan)
+                    .WithMany(p => p.Suscripciones)
+                    .HasForeignKey(x => x.PlanId);
+            });
+
+            // PagosSuscripcion
+            modelBuilder.Entity<PagoSuscripcion>(e => {
+                e.ToTable("PagosSuscripcion");
+                e.HasKey(x => x.Id);
+                e.Property(x => x.Monto).HasColumnType("decimal(10,2)");
+                e.Property(x => x.Estado).HasMaxLength(20);
+                e.HasOne(x => x.Cliente)
+                    .WithMany()
+                    .HasForeignKey(x => x.ClienteId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.Plan)
+                    .WithMany(p => p.Pagos)
+                    .HasForeignKey(x => x.PlanId);
+            });
 
             //FACTURA AFIP
             modelBuilder.Entity<FacturaAfip>(entity => {
