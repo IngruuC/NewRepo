@@ -32,27 +32,42 @@
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;">
             <div style="background:#fff;border:1.5px solid #e8c840;border-radius:8px;padding:16px;
                 text-align:center;box-shadow:0 2px 8px rgba(184,134,11,0.1);">
-                <div style="font-size:28px;margin-bottom:6px;">📦</div>
+               <svg width="36" height="36" viewBox="0 0 36 36" fill="none" style="margin-bottom:6px;">
+    <path d="M18 3L33 11v14L18 33 3 25V11z" fill="#b8860b"/>
+    <path d="M18 3L33 11M18 3L3 11M18 33V17M33 11L18 17M3 11L18 17" stroke="#d4a017" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M10.5 7.5L25.5 15.5" stroke="#f5d060" stroke-width="1.5" stroke-linecap="round"/>
+</svg>
                 <div style="font-size:26px;font-weight:800;color:#b8860b;">@misProductos.Count</div>
                 <div style="font-size:10px;font-weight:700;color:#7a5500;letter-spacing:0.5px;margin-top:4px;">MIS PRODUCTOS</div>
             </div>
             <div style="background:#fff;border:1.5px solid @(productosSinStock.Any() ? "#c0392b" : "#e8c840");
                 border-radius:8px;padding:16px;text-align:center;
                 box-shadow:0 2px 8px rgba(184,134,11,0.1);">
-                <div style="font-size:28px;margin-bottom:6px;">🚫</div>
+                <svg width="36" height="36" viewBox="0 0 36 36" fill="none" style="margin-bottom:6px;">
+    <circle cx="18" cy="18" r="14" stroke="#c0392b" stroke-width="2.5" fill="none"/>
+    <line x1="7" y1="7" x2="29" y2="29" stroke="#c0392b" stroke-width="2.5" stroke-linecap="round"/>
+</svg>
                 <div style="font-size:26px;font-weight:800;color:@(productosSinStock.Any() ? "#c0392b" : "#b8860b");">@productosSinStock.Count</div>
                 <div style="font-size:10px;font-weight:700;color:#7a5500;letter-spacing:0.5px;margin-top:4px;">SIN STOCK</div>
             </div>
             <div style="background:#fff;border:1.5px solid @(productosStockBajo.Any() ? "#e67e22" : "#e8c840");
                 border-radius:8px;padding:16px;text-align:center;
                 box-shadow:0 2px 8px rgba(184,134,11,0.1);">
-                <div style="font-size:28px;margin-bottom:6px;">⚠️</div>
+               <svg width="36" height="36" viewBox="0 0 36 36" fill="none" style="margin-bottom:6px;">
+    <path d="M18 4L33 30H3z" stroke="#e67e22" stroke-width="2" fill="none" stroke-linejoin="round"/>
+    <line x1="18" y1="14" x2="18" y2="22" stroke="#e67e22" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="18" cy="26" r="1.5" fill="#e67e22"/>
+</svg>
                 <div style="font-size:26px;font-weight:800;color:@(productosStockBajo.Any() ? "#e67e22" : "#b8860b");">@productosStockBajo.Count</div>
                 <div style="font-size:10px;font-weight:700;color:#7a5500;letter-spacing:0.5px;margin-top:4px;">STOCK BAJO</div>
             </div>
             <div style="background:#fff;border:1.5px solid #e8c840;border-radius:8px;padding:16px;
                 text-align:center;box-shadow:0 2px 8px rgba(184,134,11,0.1);">
-                <div style="font-size:28px;margin-bottom:6px;">🛒</div>
+                <svg width="36" height="36" viewBox="0 0 36 36" fill="none" style="margin-bottom:6px;">
+    <path d="M4 4h4l5 16h16l4-11H11" stroke="#b8860b" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="15" cy="30" r="2.5" fill="#b8860b"/>
+    <circle cx="26" cy="30" r="2.5" fill="#b8860b"/>
+</svg>
                 <div style="font-size:26px;font-weight:800;color:#2980b9;">@misCompras.Count</div>
                 <div style="font-size:10px;font-weight:700;color:#7a5500;letter-spacing:0.5px;margin-top:4px;">COMPRAS TOTALES</div>
             </div>
@@ -66,7 +81,10 @@
                 border-radius:8px;padding:14px;box-shadow:0 2px 8px rgba(184,134,11,0.1);">
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;
                     border-bottom:1px solid #f0d080;padding-bottom:8px;">
-                    <span style="font-size:16px;">🚫</span>
+                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <circle cx="8" cy="8" r="6.5" stroke="#c0392b" stroke-width="1.5" fill="none"/>
+    <line x1="3" y1="3" x2="13" y2="13" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round"/>
+</svg>
                     <span style="font-size:11px;font-weight:800;color:#5a3e00;letter-spacing:0.5px;">PRODUCTOS SIN STOCK</span>
                     <span style="margin-left:auto;background:@(productosSinStock.Any() ? "#c0392b" : "#27ae60");
                         color:#fff;border-radius:12px;padding:1px 8px;font-size:10px;font-weight:700;">
@@ -76,7 +94,7 @@
                 @if (!productosSinStock.Any())
                 {
                     <div style="text-align:center;color:#27ae60;font-size:11px;font-weight:700;padding:10px 0;">
-                        ✅ Todos tus productos tienen stock
+                        Todos tus productos tienen stock
                     </div>
                 }
                 else
@@ -113,7 +131,11 @@
                 border-radius:8px;padding:14px;box-shadow:0 2px 8px rgba(184,134,11,0.1);">
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;
                     border-bottom:1px solid #f0d080;padding-bottom:8px;">
-                    <span style="font-size:16px;">⚠️</span>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <path d="M8 1.5L14.5 13H1.5z" stroke="#e67e22" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
+    <line x1="8" y1="6" x2="8" y2="10" stroke="#e67e22" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="8" cy="11.5" r="0.8" fill="#e67e22"/>
+</svg>
                     <span style="font-size:11px;font-weight:800;color:#5a3e00;letter-spacing:0.5px;">STOCK BAJO (≤ 5 unidades)</span>
                     <span style="margin-left:auto;background:@(productosStockBajo.Any() ? "#e67e22" : "#27ae60");
                         color:#fff;border-radius:12px;padding:1px 8px;font-size:10px;font-weight:700;">
@@ -123,7 +145,7 @@
                 @if (!productosStockBajo.Any())
                 {
                     <div style="text-align:center;color:#27ae60;font-size:11px;font-weight:700;padding:10px 0;">
-                        ✅ Ningún producto con stock crítico
+                        Ningún producto con stock crítico
                     </div>
                 }
                 else

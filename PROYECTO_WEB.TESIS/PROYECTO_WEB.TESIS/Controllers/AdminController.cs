@@ -129,9 +129,9 @@ namespace PROYECTO_WEB.TESIS.Controllers
             // Actividad reciente
             var actividad = new List<(DateTime Fecha, string Icono, string Descripcion, string Color)>();
             foreach (var v in todasVentas.OrderByDescending(v => v.FechaVenta).Take(5))
-                actividad.Add((v.FechaVenta, "💰", $"Venta #{v.Id} — {v.Cliente?.ToString() ?? "Cliente"} — ${v.Total:N2}", "#27ae60"));
+                actividad.Add((v.FechaVenta, "venta", $"Venta #{v.Id} — {v.Cliente?.ToString() ?? "Cliente"} — ${v.Total:N2}", "#27ae60"));
             foreach (var c in todasCompras.OrderByDescending(c => c.FechaCompra).Take(3))
-                actividad.Add((c.FechaCompra, "📦", $"Compra #{c.Id} — {c.Proveedor?.RazonSocial ?? "Proveedor"} — ${c.Total:N2}", "#2980b9"));
+                actividad.Add((c.FechaCompra, "compra", $"Compra #{c.Id} — {c.Proveedor?.RazonSocial ?? "Proveedor"} — ${c.Total:N2}", "#2980b9"));
             ViewBag.ActividadReciente = actividad.OrderByDescending(a => a.Fecha).Take(6).ToList();
 
             // Productos perecederos próximos a vencer (7 días)
